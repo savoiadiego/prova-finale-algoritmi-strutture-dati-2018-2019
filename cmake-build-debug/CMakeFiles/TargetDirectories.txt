@@ -1,3 +1,0 @@
-C:/Users/Diego/Desktop/ProgettoAPI/ProgettoAPI2019/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-C:/Users/Diego/Desktop/ProgettoAPI/ProgettoAPI2019/cmake-build-debug/CMakeFiles/Progetto.dir
-C:/Users/Diego/Desktop/ProgettoAPI/ProgettoAPI2019/cmake-build-debug/CMakeFiles/edit_cache.dir
