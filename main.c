@@ -10,7 +10,7 @@ typedef struct entity {
 typedef Entities * entities_pointer;
 
 
-void addent(char const input[], entities_pointer firstEntity);
+entities_pointer addent(char const input[], entities_pointer firstEntity);
 
 
 
@@ -26,7 +26,7 @@ int main() {
         gets(input);                    //reads the input line
 
         if(strstr(input, "addent"))
-            addent(input, entitiesList);
+            entitiesList = addent(input, entitiesList);
 
 
 
@@ -37,7 +37,7 @@ int main() {
 }
 
 
-void addent(char const input[], entities_pointer firstEntity) {
+entities_pointer addent(char const input[], entities_pointer firstEntity) {
     int i = 7;                      //it's the beginning of the new entity name
     int nameLength = 0;
 
@@ -68,6 +68,7 @@ void addent(char const input[], entities_pointer firstEntity) {
         firstEntity = (entities_pointer) malloc(sizeof(Entities));
         firstEntity->name = (char *) malloc((nameLength + 1) * sizeof(char));
         strcpy(firstEntity->name, newEntity);
+        firstEntity->next = NULL;
     } else {
         entities_pointer ptr = firstEntity;
         entities_pointer prec_ptr = firstEntity;
@@ -81,7 +82,10 @@ void addent(char const input[], entities_pointer firstEntity) {
             prec_ptr->next = ptr;                                       //link the last existing node to the new one
             ptr->name = (char *) malloc((nameLength + 1) * sizeof(char));
             strcpy(ptr->name, newEntity);
+            ptr->next = NULL;
         }
 
     }
+
+    return firstEntity;
 }
