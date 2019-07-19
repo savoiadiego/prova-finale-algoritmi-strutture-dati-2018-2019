@@ -4,6 +4,8 @@
 
 typedef struct entity {
     char * name;
+    char * relIn;
+    char * relOut;
     struct entity * next;
 } Entities;
 
@@ -12,6 +14,7 @@ typedef Entities * entities_pointer;
 
 entities_pointer addent(char const input[], entities_pointer firstEntity);
 entities_pointer delent(char const input[], entities_pointer firstEntity);
+entities_pointer addrel(char const input[], entities_pointer firstEntity);
 
 
 /**
@@ -21,22 +24,24 @@ entities_pointer delent(char const input[], entities_pointer firstEntity);
  * @return
  */
 int main() {
-    entities_pointer entitiesList = NULL;                   //pointer to the beginning of the list of entities
+    entities_pointer entitiesList = NULL;                   //Pointer to the beginning of the list of entities
 
-    char input[256];                                        //too much: could it be adjusted to the length read?
+    char input[256];                                        //Too much: could it be adjusted to the length read?
 
     do {
-        gets(input);                                        //reads the input line
+        gets(input);                                        //It reads the input line
 
-        if(strstr(input, "addent") == input)                //if the command begins with "addent"
+        if(strstr(input, "addent") == input)                //If the command begins with "addent"
             entitiesList = addent(input, entitiesList);
-        else if(strstr(input, "delent") == input)           //if the command begins with "delent"
+        else if(strstr(input, "delent") == input)           //If the command begins with "delent"
             entitiesList = delent(input, entitiesList);
+        else if(strstr(input, "addrel") == input)           //If the command begins with "addrel"
+            entitiesList = addrel(input, entitiesList);
 
 
 
 
-    } while (input[0] != 'e');                              //maybe check like the others
+    } while (input[0] != 'e');                              //Maybe check like the others
 
     return 0;
 }
@@ -64,7 +69,7 @@ entities_pointer addent(char const input[], entities_pointer firstEntity) {
     i = 7;
     int j = 0;
 
-    while (input[i] != '\0') {          //It initialize newEntity with the name received
+    while (input[i] != '\0') {          //It initializes newEntity with the name received
         newEntity[j] = input[i];
         i++;
         j++;
@@ -81,6 +86,8 @@ entities_pointer addent(char const input[], entities_pointer firstEntity) {
         firstEntity = (entities_pointer) malloc(sizeof(Entities));
         firstEntity->name = (char *) malloc((nameLength + 1) * sizeof(char));
         strcpy(firstEntity->name, newEntity);
+        firstEntity->relOut = NULL;
+        firstEntity->relIn = NULL;
         firstEntity->next = NULL;
     }
     else {
@@ -96,6 +103,8 @@ entities_pointer addent(char const input[], entities_pointer firstEntity) {
             prec_ptr->next = ptr;                                           //Links the last existing node to the new one
             ptr->name = (char *) malloc((nameLength + 1) * sizeof(char));
             strcpy(ptr->name, newEntity);
+            ptr->relOut = NULL;
+            ptr->relIn = NULL;
             ptr->next = NULL;
         }
 
@@ -126,7 +135,7 @@ entities_pointer delent(char const input[], entities_pointer firstEntity) {
     i = 7;
     int j = 0;
 
-    while (input[i] != '\0') {          //It initialize newEntity with the name received
+    while (input[i] != '\0') {          //It initializes newEntity with the name received
         newEntity[j] = input[i];
         i++;
         j++;
@@ -155,6 +164,121 @@ entities_pointer delent(char const input[], entities_pointer firstEntity) {
     else if(ptr != NULL) {                              //If ptr is not NULL and the node to remove is the first
         firstEntity = ptr->next;                        //The head is now changed: if it was the only node, now it is NULL (empty)
         free(ptr);
+    }
+
+    //TODO! Remove every occurrence in relations with this name. CHANGE!! relOut and relIn not attribute, but another list of relations with relID and originID.
+    //If an entity is deleted, we check for every other entity and we delete the relations that had the deleted entity as originID.
+    //We also delete the requested entity, obviously.
+
+    return firstEntity;
+}
+
+
+//TODO! Has to be slightly modified (see TODO above)
+entities_pointer addrel(char const input[], entities_pointer firstEntity) {
+    int i = 7;                              //It's the beginning index of the new origin id received
+    int originIDLength = 0;
+
+    while (input[i] != ' ') {               //To get the size of the new origin id
+        originIDLength++;
+        i++;
+    }
+
+    char originID[originIDLength + 1];      //It will contain the new origin id, plus the '\0'
+
+    i = 7;
+    int j = 0;
+
+    while (input[i] != ' ') {               //It initializes originID with the origin id received
+        originID[j] = input[i];
+        i++;
+        j++;
+    }
+
+    originID[j] = '\0';                     //Adds the '\0'
+
+
+    i++;                                    //Index i now points to the first " of the dest id received in input
+    int destIDStart = i;
+    int destIDLength = 0;
+    while (input[i] != ' ') {               //To get the size of the new dest id
+        destIDLength++;
+        i++;
+    }
+
+    char destID[destIDLength + 1];          //It will contain the new dest id, plus the '\0'
+
+    i = destIDStart;
+    j = 0;
+
+    while (input[i] != ' ') {               //It initializes destID with the dest id received
+        destID[j] = input[i];
+        i++;
+        j++;
+    }
+
+    destID[j] = '\0';                       //Adds the '\0'
+
+
+    i++;                                    //Index i now points to the first " of the rel id received in input
+    int relIDStart = i;
+    int relIDLength = 0;
+    while (input[i] != '\0') {              //To get the size of the new rel id
+        relIDLength++;
+        i++;
+    }
+
+    char relID[relIDLength + 1];            //It will contain the new rel id, plus the '\0'
+
+    i = relIDStart;
+    j = 0;
+
+    while (input[i] != '\0') {              //It initializes relID with the rel id received
+        relID[j] = input[i];
+        i++;
+        j++;
+    }
+
+    relID[j] = '\0';                        //Adds the '\0'
+
+
+
+    entities_pointer ptr = firstEntity;
+    while (ptr != NULL && strcmp(ptr->name, originID) != 0) {
+        ptr = ptr->next;
+    }
+
+    if(ptr != NULL) {
+        if(ptr->relOut == NULL) {
+            ptr->relOut = (char *) malloc((relIDLength + 1) * sizeof(char));
+            strcpy(ptr->relOut, relID);
+        }
+        else if(strstr(ptr->relOut, relID) == NULL) {
+            char * newRelOut = malloc(strlen(ptr->relOut) + strlen(relID) + 1);
+            newRelOut[0] = '\0';
+            strcat(newRelOut, ptr->relOut);
+            strcat(newRelOut, relID);
+            strcpy(ptr->relOut, newRelOut);
+        }
+    }
+
+    ptr = firstEntity;
+    while (ptr != NULL && strcmp(ptr->name, destID) != 0) {
+        ptr = ptr->next;
+    }
+
+    if(ptr != NULL) {
+        if(ptr->relIn == NULL) {
+            ptr->relIn = (char *) malloc((relIDLength + 1) * sizeof(char));
+            strcpy(ptr->relIn, relID);
+        }
+        else if(strstr(ptr->relIn, relID) == NULL) {
+            char * newRelIn = malloc(strlen(ptr->relIn) + strlen(relID) + 1);
+            newRelIn[0] = '\0';
+            strcat(newRelIn, ptr->relIn);
+            strcat(newRelIn, relID);
+            strcpy(ptr->relIn, newRelIn);
+        }
     }
 
     return firstEntity;
