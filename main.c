@@ -2,13 +2,25 @@
 #include <stdlib.h>
 #include <string.h>
 
+typedef struct origins {
+    char * name;
+    struct origins * next;
+} Origins;
+
+typedef struct relations {
+    char * name;
+    struct origins * origins;
+    struct relations * next;
+} Relations;
+
 typedef struct entity {
     char * name;
-    char * relIn;
-    char * relOut;
+    struct relations * relations;
     struct entity * next;
 } Entities;
 
+typedef Origins * origins_pointer;
+typedef Relations * relations_pointer;
 typedef Entities * entities_pointer;
 
 
@@ -86,8 +98,7 @@ entities_pointer addent(char const input[], entities_pointer firstEntity) {
         firstEntity = (entities_pointer) malloc(sizeof(Entities));
         firstEntity->name = (char *) malloc((nameLength + 1) * sizeof(char));
         strcpy(firstEntity->name, newEntity);
-        firstEntity->relOut = NULL;
-        firstEntity->relIn = NULL;
+        firstEntity->relations = NULL;
         firstEntity->next = NULL;
     }
     else {
@@ -103,8 +114,7 @@ entities_pointer addent(char const input[], entities_pointer firstEntity) {
             prec_ptr->next = ptr;                                           //Links the last existing node to the new one
             ptr->name = (char *) malloc((nameLength + 1) * sizeof(char));
             strcpy(ptr->name, newEntity);
-            ptr->relOut = NULL;
-            ptr->relIn = NULL;
+            ptr->relations = NULL;
             ptr->next = NULL;
         }
 
@@ -145,8 +155,9 @@ entities_pointer delent(char const input[], entities_pointer firstEntity) {
 
     //Now newEntity contains the new entity name, like "diego" (with "" and the final '\0').
     //If the name is not present in the list (so ptr points to NULL), it does nothing.
-    //Otherwise, if the name is present (so ptr does not point to NULL), it links the precedent node to the next node,
-    //and it deletes the node with the searched name.
+    //Otherwise, if the name is present (so ptr does not point to NULL), it looks for every occurrence of "newEntity"
+    //in the entities list, and deletes it in the origins list inside the relations list, if present.
+    //Eventually, it links the precedent node to the next node and it deletes the node with the searched name.
 
     entities_pointer ptr = firstEntity;
     entities_pointer prec_ptr = firstEntity;
@@ -157,6 +168,38 @@ entities_pointer delent(char const input[], entities_pointer firstEntity) {
         countNodes++;
     }
 
+    //If ptr is not NULL, it search in the entities list for every node that is not "newEntity". In that node, it search
+    //in its relations list for an origin name that has the same name as "newEntity". At that point, it removes that origin node.
+
+    if(ptr != NULL) {
+        entities_pointer ptrRemove = firstEntity;
+        while(ptrRemove != NULL && strcmp(ptrRemove->name, newEntity) != 0) {
+            relations_pointer relationsRemove = ptrRemove->relations;
+            while(relationsRemove != NULL) {
+                origins_pointer originsRemove = relationsRemove->origins;
+                origins_pointer originsRemovePrec = relationsRemove->origins;
+                int countOrigins = 0;
+                while(originsRemove != NULL) {
+                    if(strcmp(originsRemove->name, newEntity) == 0 && countOrigins == 0) {
+                        relationsRemove->origins = originsRemove->next;
+                        free(originsRemove);
+                    }
+                    else if(strcmp(originsRemove->name, newEntity) == 0) {
+                        originsRemovePrec->next = originsRemove->next;
+                        free(originsRemove);
+                    }
+                    originsRemovePrec = originsRemove;
+                    originsRemove = originsRemove->next;
+                    countOrigins++;
+                }
+                relationsRemove = relationsRemove->next;
+            }
+            ptrRemove = ptrRemove->next;
+        }
+    }
+
+    //Now that every origin node with the same name as "newEntity" is deleted in every other entity node, it deletes the entity "newEntity".
+
     if(ptr != NULL && countNodes != 0) {                //If ptr is not NULL and the node to remove is not the first
         prec_ptr->next = ptr->next;
         free(ptr);
@@ -166,15 +209,10 @@ entities_pointer delent(char const input[], entities_pointer firstEntity) {
         free(ptr);
     }
 
-    //TODO! Remove every occurrence in relations with this name. CHANGE!! relOut and relIn not attribute, but another list of relations with relID and originID.
-    //If an entity is deleted, we check for every other entity and we delete the relations that had the deleted entity as originID.
-    //We also delete the requested entity, obviously.
-
     return firstEntity;
 }
 
 
-//TODO! Has to be slightly modified (see TODO above)
 entities_pointer addrel(char const input[], entities_pointer firstEntity) {
     int i = 7;                              //It's the beginning index of the new origin id received
     int originIDLength = 0;
@@ -242,42 +280,69 @@ entities_pointer addrel(char const input[], entities_pointer firstEntity) {
     relID[j] = '\0';                        //Adds the '\0'
 
 
+    //It looks for the entity node with the same name as "destID"
 
     entities_pointer ptr = firstEntity;
-    while (ptr != NULL && strcmp(ptr->name, originID) != 0) {
-        ptr = ptr->next;
-    }
-
-    if(ptr != NULL) {
-        if(ptr->relOut == NULL) {
-            ptr->relOut = (char *) malloc((relIDLength + 1) * sizeof(char));
-            strcpy(ptr->relOut, relID);
-        }
-        else if(strstr(ptr->relOut, relID) == NULL) {
-            char * newRelOut = malloc(strlen(ptr->relOut) + strlen(relID) + 1);
-            newRelOut[0] = '\0';
-            strcat(newRelOut, ptr->relOut);
-            strcat(newRelOut, relID);
-            strcpy(ptr->relOut, newRelOut);
-        }
-    }
-
-    ptr = firstEntity;
     while (ptr != NULL && strcmp(ptr->name, destID) != 0) {
         ptr = ptr->next;
     }
 
-    if(ptr != NULL) {
-        if(ptr->relIn == NULL) {
-            ptr->relIn = (char *) malloc((relIDLength + 1) * sizeof(char));
-            strcpy(ptr->relIn, relID);
+    //If that entity is not present, it exits.
+    //If that entity is present and it has no relations yet, it initializes the new nodes with the new relID and originID inside.
+    //If that entity is present and it already has relations, it looks for the relation node with relID.
+    //If relID is not present, it adds it with originID inside.
+    //If relID is already present, it simply adds the new originID to that relation, if not already present.
+
+    if(ptr != NULL) {                                                                                       //If the entity is present
+        if(ptr->relations == NULL) {                                                                        //If the entity has no relations yet
+            ptr->relations = (relations_pointer) malloc(sizeof(Relations));
+            ptr->relations->name = (char *) malloc((relIDLength + 1) * sizeof(char));
+            strcpy(ptr->relations->name, relID);
+            ptr->relations->next = NULL;
+            ptr->relations->origins = NULL;
+
+            ptr->relations->origins = (origins_pointer) malloc(sizeof(Origins));
+            ptr->relations->origins->name = (char *) malloc((originIDLength + 1) * sizeof(char));
+            strcpy(ptr->relations->origins->name, originID);
+            ptr->relations->origins->next = NULL;
         }
-        else if(strstr(ptr->relIn, relID) == NULL) {
-            char * newRelIn = malloc(strlen(ptr->relIn) + strlen(relID) + 1);
-            newRelIn[0] = '\0';
-            strcat(newRelIn, ptr->relIn);
-            strcat(newRelIn, relID);
-            strcpy(ptr->relIn, newRelIn);
+        else {                                                                                              //Else if the entity already has any relation
+            relations_pointer ptrRelations = ptr->relations;
+            relations_pointer ptrRelationsPrec = ptr->relations;
+
+            while(ptrRelations != NULL && strcmp(ptrRelations->name, relID) != 0) {
+                ptrRelationsPrec = ptrRelations;
+                ptrRelations = ptrRelations->next;
+            }
+
+            if(ptrRelations == NULL) {                                                                      //If the requested relation is not present in that entity
+                ptrRelations = (relations_pointer) malloc(sizeof(Relations));
+                ptrRelationsPrec->next = ptrRelations;
+                ptrRelations->next = NULL;
+                ptrRelations->name = (char *) malloc((relIDLength + 1) * sizeof(char));
+                strcpy(ptrRelations->name, relID);
+                ptrRelations->origins = (origins_pointer) malloc(sizeof(Origins));
+                ptrRelations->origins->name = (char *) malloc((originIDLength + 1) * sizeof(char));
+                strcpy(ptrRelations->origins->name, originID);
+                ptrRelations->origins->next = NULL;
+            }
+            else {                                                                                          //Else if the requested relation is already present in that entity
+                origins_pointer originToAdd = ptrRelations->origins;
+                origins_pointer originPrec = ptrRelations->origins;
+                while(originToAdd != NULL && strcmp(originToAdd->name, originID) != 0) {
+                    originPrec = originToAdd;
+                    originToAdd = originToAdd->next;
+                }
+
+                if(originToAdd == NULL) {                                                                   //If the origin is not present, it is added
+                    originToAdd = (origins_pointer) malloc(sizeof(Origins));
+                    originPrec->next = originToAdd;
+                    originToAdd->next = NULL;
+                    originToAdd->name = (char *) malloc((originIDLength + 1) * sizeof(char));
+                    strcpy(originToAdd->name, originID);
+                }
+            }
+
         }
     }
 
