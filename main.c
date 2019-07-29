@@ -34,7 +34,7 @@ entities_pointer delrel(char const input[], entities_pointer firstEntity);
  * Main method. It initializes the pointer to the beginning of the list only once.
  * Then, it reads an input line and calls the relative method based on what word the line begins with.
  * Eventually, if the line begins with "end", it stops reading and terminates.
- * @return
+ * @return 0 when the process ends
  */
 int main() {
     entities_pointer entitiesList = NULL;                   //Pointer to the beginning of the list of entities
@@ -129,10 +129,11 @@ entities_pointer addent(char const input[], entities_pointer firstEntity) {
 /**
  * Method called when the command "delent" <entity_name> is received.
  * If <entity_name> is present in the entity list, then the method deletes the node.
+ * In this case, every relation which includes <entity_name> is deleted.
  * If <entity_name> is not present in the entity list (or the list is empty), then the method does nothing.
- * @param input
- * @param firstEntity
- * @return
+ * @param input string
+ * @param firstEntity (pointer to the beginning of the entities list)
+ * @return firstEntity, modified if necessary
  */
 entities_pointer delent(char const input[], entities_pointer firstEntity) {
     int i = 7;                          //It's the beginning index of the new entity name received
@@ -234,7 +235,15 @@ entities_pointer delent(char const input[], entities_pointer firstEntity) {
     return firstEntity;
 }
 
-
+/**
+ * Method called when the command "addrel" <entity_name_origin> <entity_name_destination> <relation_name> is received.
+ * This method looks for <entity_name_destination> node in the entities list. Then, if <relation_name> is not present
+ * in the relations list of that entity, it is added with <entity_name_origin> as the origin name.
+ * If <entity_name_origin> or <entity_name_destination> are not present in the entity list, then the method does nothing.
+ * @param input string
+ * @param firstEntity (pointer to the beginning of the entities list)
+ * @return firstEntity, modified if necessary
+ */
 entities_pointer addrel(char const input[], entities_pointer firstEntity) {
     int i = 7;                              //It's the beginning index of the new origin id received
     int originIDLength = 0;
@@ -309,13 +318,20 @@ entities_pointer addrel(char const input[], entities_pointer firstEntity) {
         ptr = ptr->next;
     }
 
-    //If that entity is not present, it exits.
+    //It also checks if "originID" is present in the monitored entities
+
+    entities_pointer ptrOrigin = firstEntity;
+    while(ptrOrigin != NULL && strcmp(ptrOrigin->name, originID) != 0) {
+        ptrOrigin = ptrOrigin->next;
+    }
+
+    //If at least one of the two entities is not present, it exits.
     //If that entity is present and it has no relations yet, it initializes the new nodes with the new relID and originID inside.
     //If that entity is present and it already has relations, it looks for the relation node with relID.
     //If relID is not present, it adds it with originID inside.
     //If relID is already present, it simply adds the new originID to that relation, if not already present.
 
-    if(ptr != NULL) {                                                                                       //If the entity is present
+    if(ptr != NULL && ptrOrigin != NULL) {                                                                  //If the entity is present
         if(ptr->relations == NULL) {                                                                        //If the entity has no relations yet
             ptr->relations = (relations_pointer) malloc(sizeof(Relations));
             ptr->relations->name = (char *) malloc((relIDLength + 1) * sizeof(char));
@@ -371,7 +387,15 @@ entities_pointer addrel(char const input[], entities_pointer firstEntity) {
     return firstEntity;
 }
 
-
+/**
+ * Method called when the command "delrel" <entity_name_origin> <entity_name_destination> <relation_name> is received.
+ * This method looks for <entity_name_destination> node in the entities list. Then, if <relation_name> is present
+ * in the relations list of that entity, it deletes <entity_name_origin> from the origins list of that relations list.
+ * If <entity_name_origin>, <entity_name_destination> or <relation_name> are not present in the entity list, the method does nothing.
+ * @param input string
+ * @param firstEntity (pointer to the beginning of the entities list)
+ * @return firstEntity, modified if necessary
+ */
 entities_pointer delrel(char const input[], entities_pointer firstEntity) {
     int i = 7;                              //It's the beginning index of the new origin id received
     int originIDLength = 0;
@@ -446,12 +470,19 @@ entities_pointer delrel(char const input[], entities_pointer firstEntity) {
         ptr = ptr->next;
     }
 
-    //If that entity is not present, it exits.
+    //It also checks if "originID" is present in the monitored entities
+
+    entities_pointer ptrOrigin = firstEntity;
+    while(ptrOrigin != NULL && strcmp(ptrOrigin->name, originID) != 0) {
+        ptrOrigin = ptrOrigin->next;
+    }
+
+    //If at least one of the two entities is not present, it exits.
     //If that entity is present it checks if it has relID in its relations list. If not, it exits.
     //If relID is present, it checks if the originID of that relation is the same as the originID in input. If not, it exits.
     //If it is the same, it remove that origin in that relation.
 
-    if(ptr != NULL) {
+    if(ptr != NULL && ptrOrigin != NULL) {
         relations_pointer relPointer = ptr->relations;
         relations_pointer relPointerPrec = ptr->relations;
         int counterRel = 0;
