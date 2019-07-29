@@ -175,24 +175,43 @@ entities_pointer delent(char const input[], entities_pointer firstEntity) {
         entities_pointer ptrRemove = firstEntity;
         while(ptrRemove != NULL && strcmp(ptrRemove->name, newEntity) != 0) {
             relations_pointer relationsRemove = ptrRemove->relations;
+            relations_pointer relationsRemovePrec = ptrRemove->relations;
+            int countRelations = 0;
+
             while(relationsRemove != NULL) {
                 origins_pointer originsRemove = relationsRemove->origins;
                 origins_pointer originsRemovePrec = relationsRemove->origins;
                 int countOrigins = 0;
-                while(originsRemove != NULL) {
-                    if(strcmp(originsRemove->name, newEntity) == 0 && countOrigins == 0) {
-                        relationsRemove->origins = originsRemove->next;
-                        free(originsRemove);
-                    }
-                    else if(strcmp(originsRemove->name, newEntity) == 0) {
-                        originsRemovePrec->next = originsRemove->next;
-                        free(originsRemove);
-                    }
+
+                while(originsRemove != NULL && strcmp(originsRemove->name, newEntity) != 0) {
                     originsRemovePrec = originsRemove;
                     originsRemove = originsRemove->next;
                     countOrigins++;
                 }
-                relationsRemove = relationsRemove->next;
+
+                if(originsRemove != NULL && countOrigins == 0) {
+                    relationsRemove->origins = originsRemove->next;
+                    free(originsRemove);
+                }
+                else if(originsRemove != NULL) {
+                    originsRemovePrec->next = originsRemove->next;
+                    free(originsRemove);
+                }
+
+
+                if(relationsRemove->origins == NULL && countRelations == 0) {
+                    ptrRemove->relations = relationsRemove->next;
+                    relations_pointer relationToDel = relationsRemove;
+                    relationsRemove = relationsRemove->next;
+                    free(relationToDel);
+                }
+                else if(relationsRemove->origins == NULL) {
+                    relationsRemovePrec->next = relationsRemove->next;
+                    relations_pointer relationToDel = relationsRemove;
+                    relationsRemove = relationsRemove->next;
+                    free(relationToDel);
+                    countRelations++;
+                }
             }
             ptrRemove = ptrRemove->next;
         }
