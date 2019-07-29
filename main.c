@@ -2,20 +2,20 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct origins {
+typedef struct origin {
     char * name;
-    struct origins * next;
+    struct origin * next;
 } Origins;
 
-typedef struct relations {
+typedef struct relation {
     char * name;
-    struct origins * origins;
-    struct relations * next;
+    struct origin * origins;
+    struct relation * next;
 } Relations;
 
 typedef struct entity {
     char * name;
-    struct relations * relations;
+    struct relation * relations;
     struct entity * next;
 } Entities;
 
