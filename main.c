@@ -19,15 +19,30 @@ typedef struct entity {
     struct entity * next;
 } Entities;
 
+typedef struct destID {
+    char * destName;
+    struct destID * next;
+} DestIDs;
+
+typedef struct report {
+    char * relID;
+    struct destID * destID;
+    int num;
+    struct report * next;
+} Reports;
+
 typedef Origins * origins_pointer;
 typedef Relations * relations_pointer;
 typedef Entities * entities_pointer;
+typedef DestIDs * destinations_pointer;
+typedef Reports * reports_pointer;
 
 
 entities_pointer addent(char const input[], entities_pointer firstEntity);
 entities_pointer delent(char const input[], entities_pointer firstEntity);
 entities_pointer addrel(char const input[], entities_pointer firstEntity);
 entities_pointer delrel(char const input[], entities_pointer firstEntity);
+void report(entities_pointer firstEntity);
 
 
 /**
@@ -42,7 +57,7 @@ int main() {
     char input[256];                                        //Too much: could it be adjusted to the length read?
 
     do {
-        gets(input);                                        //It reads the input line
+        fgets(input, 256, stdin);                                        //It reads the input line
 
         if(strstr(input, "addent") == input)                //If the command begins with "addent"
             entitiesList = addent(input, entitiesList);
@@ -52,9 +67,8 @@ int main() {
             entitiesList = addrel(input, entitiesList);
         else if(strstr(input, "delrel") == input)           //If the command begins with "delrel"
             entitiesList = delrel(input, entitiesList);
-
-
-
+        else if(strstr(input, "report") == input)           //If the command begins with "report"
+            report(entitiesList);
 
     } while (input[0] != 'e');                              //Maybe check like the others
 
@@ -522,4 +536,57 @@ entities_pointer delrel(char const input[], entities_pointer firstEntity) {
         }
     }
     return firstEntity;
+}
+
+
+//TODO report
+//Scorri la lista delle entities: per ogni entity scorri le relazioni in ingresso. Per ogni relazione salvi nome e numero di origins.
+//In una nuova lista "report", se la relazione non è già presente, allora la aggiungi con destinatario e numero di origins.
+//Se invece è già presente, confronti il numero di origins e se è maggiore di quello già presente, allora sostituisci numero ed eventualmente destinatario, se diverso.
+//Se il numero è identico, allora si aggiunge il nuovo destinatario (che quindi è una lista dentro la lista).
+//Una volta completato lo scorrimento di tutta la lista, bisogna ordinarla in base al nome della relazione.
+//Bisogna inoltre ordinare anche i destinatari di ogni relazione, se più di uno.
+//Infine, si stampa la lista in ordine.
+
+void report(entities_pointer firstEntity) {
+    reports_pointer reportHead = NULL;
+
+    entities_pointer ptr = firstEntity;
+    while(ptr != NULL) {
+        relations_pointer rel = ptr->relations;
+        while(rel != NULL) {
+            if(reportHead == NULL) {
+                reportHead = (reports_pointer) malloc(sizeof(Reports));
+                reportHead->destID = (destinations_pointer) malloc(sizeof(DestIDs));
+                reportHead->destID->destName = (char *) malloc((strlen(ptr->name) + 1) * sizeof(char));
+                strcpy(reportHead->destID->destName, ptr->name);
+                reportHead->destID->next = NULL;
+                reportHead->relID = (char *) malloc((strlen(rel->name) + 1) * sizeof(char));
+                strcpy(reportHead->relID, rel->name);
+                int num = 0;
+                while(rel->origins != NULL) {
+                    num++;
+                    rel->origins = rel->origins->next;
+                }
+                reportHead->num = (int) malloc(sizeof(int));
+                reportHead->num = num;
+                reportHead->next = NULL;
+            }
+            else {
+                reports_pointer report = reportHead;
+                reports_pointer reportPrec = reportHead;
+                while(report != NULL) {
+                    reportPrec = report;
+                    report = report->next;
+                }
+                //Same as above but report is not empty, so if rel is already present, we have to check num to decide
+                //if we have to add destID (numOld = num), substitute destID (numOld < num) or do nothing (numOld > num).
+            }
+
+            rel = rel->next;
+        }
+        ptr = ptr->next;
+    }
+
+    //After the report list is created, we have to order it (relations and destIDs inside).
 }
