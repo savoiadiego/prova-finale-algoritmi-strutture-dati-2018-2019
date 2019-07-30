@@ -638,14 +638,14 @@ void report(entities_pointer firstEntity) {
     //After the report list is created, we have to order it (relations and destIDs inside).
 
     if(reportHead == NULL)
-        printf("none");
+        printf("none\n");
     else {
         reports_pointer reportTempPrec = reportHead;
         reports_pointer reportTemp = reportHead->next;
         while(reportTempPrec != NULL) {
             while(reportTemp != NULL) {
                 if(strcmp(reportTemp->relID, reportTempPrec->relID) < 0) {
-                    reports_pointer temporary = reportTempPrec->next;
+                    reports_pointer temporary = reportTemp->next;
                     if(reportTempPrec == reportHead)
                         reportHead = reportTemp;
                     reportTemp->next = reportTempPrec;
@@ -684,12 +684,12 @@ void report(entities_pointer firstEntity) {
         int countOutput = 0;
 
         while(reportPrint != NULL) {
-            char * relName = malloc(strlen(reportPrint->relID) + 1);
+            char * relName = malloc(strlen(reportPrint->relID) + strlen(space) + 1);
             strcpy(relName, reportPrint->relID);
-            relName = malloc(strlen(relName) + strlen(space) + 1);
             strcat(relName, space);
 
-            char *destinations = NULL;
+
+            char * destinations = NULL;
             int countDest = 0;
             while(reportPrint->destID != NULL) {
                 char * destID = malloc(strlen(reportPrint->destID->destName) + 1);
@@ -699,40 +699,38 @@ void report(entities_pointer firstEntity) {
                     strcpy(destinations, destID);
                 }
                 else {
-                    destinations = malloc(strlen(destinations) + strlen(space) + 1);
+                    destinations = realloc(destinations, strlen(space) + strlen(destID) + 1);
                     strcat(destinations, space);
-                    destinations = malloc(strlen(destinations) + strlen(destID) + 1);
                     strcat(destinations, destID);
                 }
 
                 countDest++;
+                reportPrint->destID = reportPrint->destID->next;
             }
 
-            relName = malloc(strlen(relName) + strlen(destinations) + 1);
-            strcat(relName, destinations);
-
-            relName = malloc(strlen(relName) + strlen(space) + 1);
-            strcat(relName, space);
-
-            char * num = (char *) reportPrint->num;
-
-            relName = malloc(strlen(relName) + strlen(num) + 1);
-            strcat(relName, num);
-
-            relName = malloc(strlen(relName) + strlen(dot) + 1);
-            strcat(relName, dot);
+            char num[1];
+            sprintf(num, "%d", reportPrint->num);
 
             if(countOutput == 0) {
-                output = malloc(strlen(relName) + 1);
+                output = malloc(strlen(relName) + strlen(destinations) + strlen(space) + strlen(num) + strlen(dot) + 1);
                 strcpy(output, relName);
+                strcat(output, destinations);
+                strcat(output, space);
+                strcat(output, num);
+                strcat(output, dot);
             }
             else {
-                output = malloc(strlen(output) + strlen(relName) + 1);
+                output = realloc(output, strlen(relName) + strlen(destinations) + strlen(space) + strlen(num) + strlen(dot) + 1);
                 strcat(output, relName);
+                strcat(output, destinations);
+                strcat(output, space);
+                strcat(output, num);
+                strcat(output, dot);
             }
 
             countOutput++;
             reportPrint = reportPrint->next;
         }
+        printf("%s\n", output);
     }
 }
