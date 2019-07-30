@@ -649,7 +649,7 @@ void report(entities_pointer firstEntity) {
                     if(reportTempPrec == reportHead)
                         reportHead = reportTemp;
                     reportTemp->next = reportTempPrec;
-                    reportTempPrec->next = temporary->next;
+                    reportTempPrec->next = temporary;
                 }
                 reportTemp = reportTemp->next;
             }
@@ -660,11 +660,11 @@ void report(entities_pointer firstEntity) {
                 while(destTempPrec != NULL) {
                     while(destTemp != NULL) {
                         if(strcmp(destTemp->destName, destTempPrec->destName) < 0) {
-                            destinations_pointer temporary = destTempPrec->next;
+                            destinations_pointer temporary = destTemp->next;
                             if(destTempPrec == reportTempPrec->destID)
                                 reportTempPrec->destID = destTemp;
                             destTemp->next = destTempPrec;
-                            destTempPrec->next = temporary->next;
+                            destTempPrec->next = temporary;
                         }
                         destTemp = destTemp->next;
                     }
@@ -720,7 +720,8 @@ void report(entities_pointer firstEntity) {
                 strcat(output, dot);
             }
             else {
-                output = realloc(output, strlen(relName) + strlen(destinations) + strlen(space) + strlen(num) + strlen(dot) + 1);
+                output = realloc(output, strlen(space) + strlen(relName) + strlen(destinations) + strlen(space) + strlen(num) + strlen(dot) + 1);
+                strcat(output, space);
                 strcat(output, relName);
                 strcat(output, destinations);
                 strcat(output, space);
