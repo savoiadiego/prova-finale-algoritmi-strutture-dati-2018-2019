@@ -57,7 +57,7 @@ int main() {
     char input[256];                                        //Too much: could it be adjusted to the length read?
 
     do {
-        fgets(input, 256, stdin);                                                 //It reads the input line
+        fgets(input, 257, stdin);                                                 //It reads the input line
 
         if(input[0] == 'a' && input[1] == 'd' && input[2] == 'd') {
             if(input[3] == 'e' && input[4] == 'n' && input[5] == 't')                       //If the command begins with "addent"
@@ -74,7 +74,7 @@ int main() {
         else if(input[0] == 'r' && input[1] == 'e' && input[2] == 'p' && input[3] == 'o' && input[4] == 'r' && input[5] == 't')
             report(entitiesList);                                                           //If the command begins with "report"
 
-    } while (input[0] != 'e');                              //Maybe check like the others
+    } while (input[0] != 'e');
 
     return 0;
 }
@@ -94,7 +94,7 @@ entities_pointer addent(char const input[], entities_pointer firstEntity) {
 
     for(; input[i] != '\n'; i++) {      //i = 7 is the beginning index of the new entity name received
         if(i == 7) {
-            newEntity = malloc(sizeof(char) + 1);
+            newEntity = (char *) malloc(sizeof(char) + 1);
             newEntity[0] = input[i];
             newEntity[1] = '\0';
         }
@@ -155,7 +155,7 @@ entities_pointer delent(char const input[], entities_pointer firstEntity) {
 
     for(; input[i] != '\n'; i++) {      //i = 7 is the beginning index of the new entity name received
         if(i == 7) {
-            newEntity = malloc(sizeof(char) + 1);
+            newEntity = (char *) malloc(sizeof(char) + 1);
             newEntity[0] = input[i];
             newEntity[1] = '\0';
         }
@@ -226,6 +226,9 @@ entities_pointer delent(char const input[], entities_pointer firstEntity) {
                     free(relationToDel);
                     countRelations++;
                 }
+
+                relationsRemovePrec = relationsRemove;
+                relationsRemove = relationsRemovePrec->next;
             }
             ptrRemove = ptrRemove->next;
         }
@@ -260,7 +263,7 @@ entities_pointer addrel(char const input[], entities_pointer firstEntity) {
 
     for(; input[i] != ' '; i++) {      //i = 7 is the beginning index of the new originID received
         if(i == 7) {
-            originID = malloc(sizeof(char) + 1);
+            originID = (char *) malloc(sizeof(char) + 1);
             originID[0] = input[i];
             originID[1] = '\0';
         }
@@ -277,7 +280,7 @@ entities_pointer addrel(char const input[], entities_pointer firstEntity) {
 
     for(; input[i] != ' '; i++) {
         if(i == destIDStart) {
-            destID = malloc(sizeof(char) + 1);
+            destID = (char *) malloc(sizeof(char) + 1);
             destID[0] = input[i];
             destID[1] = '\0';
         }
@@ -294,7 +297,7 @@ entities_pointer addrel(char const input[], entities_pointer firstEntity) {
 
     for(; input[i] != '\n'; i++) {
         if(i == relIDStart) {
-            relID = malloc(sizeof(char) + 1);
+            relID = (char *) malloc(sizeof(char) + 1);
             relID[0] = input[i];
             relID[1] = '\0';
         }
@@ -397,7 +400,7 @@ entities_pointer delrel(char const input[], entities_pointer firstEntity) {
 
     for(; input[i] != ' '; i++) {      //i = 7 is the beginning index of the new originID received
         if(i == 7) {
-            originID = malloc(sizeof(char) + 1);
+            originID = (char *) malloc(sizeof(char) + 1);
             originID[0] = input[i];
             originID[1] = '\0';
         }
@@ -414,7 +417,7 @@ entities_pointer delrel(char const input[], entities_pointer firstEntity) {
 
     for(; input[i] != ' '; i++) {
         if(i == destIDStart) {
-            destID = malloc(sizeof(char) + 1);
+            destID = (char *) malloc(sizeof(char) + 1);
             destID[0] = input[i];
             destID[1] = '\0';
         }
@@ -431,7 +434,7 @@ entities_pointer delrel(char const input[], entities_pointer firstEntity) {
 
     for(; input[i] != '\n'; i++) {
         if(i == relIDStart) {
-            relID = malloc(sizeof(char) + 1);
+            relID = (char *) malloc(sizeof(char) + 1);
             relID[0] = input[i];
             relID[1] = '\0';
         }
@@ -617,13 +620,13 @@ void report(entities_pointer firstEntity) {
                 destTemp = destTempPrec->next;
                 while (destTemp != NULL) {
                     if (strcmp(destTemp->destName, destTempPrec->destName) < 0) {
-                        char *temporary = malloc(strlen(destTemp->destName));
+                        char *temporary = (char *) malloc(strlen(destTemp->destName));
                         strcpy(temporary, destTemp->destName);
-                        free(destTemp->destName);
-                        destTemp->destName = malloc(strlen(destTempPrec->destName));
+                        //free(destTemp->destName);
+                        destTemp->destName = (char *) malloc(strlen(destTempPrec->destName));
                         strcpy(destTemp->destName, destTempPrec->destName);
-                        free(destTempPrec->destName);
-                        destTempPrec->destName = malloc(strlen(temporary));
+                        //free(destTempPrec->destName);
+                        destTempPrec->destName = (char *) malloc(strlen(temporary));
                         strcpy(destTempPrec->destName, temporary);
                     }
                     destTemp = destTemp->next;
@@ -638,13 +641,13 @@ void report(entities_pointer firstEntity) {
 
         while (reportTemp != NULL) {
             if (strcmp(reportTemp->relID, reportTempPrec->relID) < 0) {
-                char *temporary = malloc(strlen(reportTemp->relID));
+                char *temporary = (char *) malloc(strlen(reportTemp->relID));
                 strcpy(temporary, reportTemp->relID);
-                free(reportTemp->relID);
-                reportTemp->relID = malloc(strlen(reportTempPrec->relID));
+                //free(reportTemp->relID);
+                reportTemp->relID = (char *) malloc(strlen(reportTempPrec->relID));
                 strcpy(reportTemp->relID, reportTempPrec->relID);
-                free(reportTempPrec->relID);
-                reportTempPrec->relID = malloc(strlen(temporary));
+                //free(reportTempPrec->relID);
+                reportTempPrec->relID = (char *) malloc(strlen(temporary));
                 strcpy(reportTempPrec->relID, temporary);
                 destinations_pointer temporaryDestPointer = reportTemp->destID;
                 reportTemp->destID = reportTempPrec->destID;
@@ -667,7 +670,7 @@ void report(entities_pointer firstEntity) {
         int countOutput = 0;
 
         while (reportPrint != NULL) {
-            char *relName = malloc(strlen(reportPrint->relID) + strlen(space) + 1);
+            char *relName = (char *) malloc(strlen(reportPrint->relID) + strlen(space) + 1);
             strcpy(relName, reportPrint->relID);
             strcat(relName, space);
 
@@ -675,10 +678,10 @@ void report(entities_pointer firstEntity) {
             char *destinations = NULL;
             int countDest = 0;
             while (reportPrint->destID != NULL) {
-                char *destID = malloc(strlen(reportPrint->destID->destName) + 1);
+                char *destID = (char *) malloc(strlen(reportPrint->destID->destName) + 1);
                 strcpy(destID, reportPrint->destID->destName);
                 if (countDest == 0) {
-                    destinations = malloc(strlen(destID) + 1);
+                    destinations = (char *) malloc(strlen(destID) + 1);
                     strcpy(destinations, destID);
                 } else {
                     destinations = realloc(destinations, strlen(destinations) + strlen(space) + strlen(destID) + 1);
@@ -694,7 +697,7 @@ void report(entities_pointer firstEntity) {
             sprintf(num, "%d", reportPrint->num);
 
             if (countOutput == 0) {
-                output = malloc(strlen(relName) + strlen(destinations) + strlen(space) + strlen(num) + strlen(dot) + 1);
+                output = (char *) malloc(strlen(relName) + strlen(destinations) + strlen(space) + strlen(num) + strlen(dot) + 1);
                 strcpy(output, relName);
                 strcat(output, destinations);
                 strcat(output, space);
