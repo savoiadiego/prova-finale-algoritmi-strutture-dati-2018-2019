@@ -568,7 +568,7 @@ void report(entities_pointer firstEntity) {
                     num++;
                     originsTemp = originsTemp->next;
                 }
-                reportHead->num = (int) malloc(sizeof(int));
+                //reportHead->num = (int) malloc(sizeof(int));
                 reportHead->num = num;
                 reportHead->next = NULL;
             }
@@ -596,7 +596,7 @@ void report(entities_pointer firstEntity) {
                         num++;
                         originsTemp = originsTemp->next;
                     }
-                    report->num = (int) malloc(sizeof(int));
+                    //report->num = (int) malloc(sizeof(int));
                     report->num = num;
                     report->next = NULL;
                     reportPrec->next = report;
@@ -637,39 +637,55 @@ void report(entities_pointer firstEntity) {
 
     //After the report list is created, we have to order it (relations and destIDs inside).
 
-    if(reportHead == NULL)
+    if(reportHead == NULL) {
         printf("none\n");
+        return;
+    }
     else {
         reports_pointer reportTempPrec = reportHead;
         reports_pointer reportTemp = reportHead->next;
         while(reportTempPrec != NULL) {
             while(reportTemp != NULL) {
+
+                destinations_pointer destTempPrec = reportTempPrec->destID;
+                destinations_pointer destTemp = reportTempPrec->destID->next;
+                if(destTemp != NULL) {          //If there is more than one destID in the relation, we have to check the order
+                    while(destTempPrec != NULL) {
+                        while(destTemp != NULL) {
+                            if(strcmp(destTemp->destName, destTempPrec->destName) < 0) {
+                                char * temporary = malloc(strlen(destTemp->destName));
+                                strcpy(temporary, destTemp->destName);
+                                free(destTemp->destName);
+                                destTemp->destName = malloc(strlen(destTempPrec->destName));
+                                strcpy(destTemp->destName, destTempPrec->destName);
+                                free(destTempPrec->destName);
+                                destTempPrec->destName = malloc(strlen(temporary));
+                                strcpy(destTempPrec->destName, temporary);
+                            }
+                            destTemp = destTemp->next;
+                        }
+                        destTempPrec = destTempPrec->next;
+                    }
+                }
+
+
                 if(strcmp(reportTemp->relID, reportTempPrec->relID) < 0) {
-                    reports_pointer temporary = reportTemp->next;
-                    if(reportTempPrec == reportHead)
-                        reportHead = reportTemp;
-                    reportTemp->next = reportTempPrec;
-                    reportTempPrec->next = temporary;
+                    char * temporary = malloc(strlen(reportTemp->relID));
+                    strcpy(temporary, reportTemp->relID);
+                    free(reportTemp->relID);
+                    reportTemp->relID = malloc(strlen(reportTempPrec->relID));
+                    strcpy(reportTemp->relID, reportTempPrec->relID);
+                    free(reportTempPrec->relID);
+                    reportTempPrec->relID = malloc(strlen(temporary));
+                    strcpy(reportTempPrec->relID, temporary);
+                    destinations_pointer temporaryDestPointer = reportTemp->destID;
+                    reportTemp->destID = reportTempPrec->destID;
+                    reportTempPrec->destID = temporaryDestPointer;
+                    int temporaryNum = reportTemp->num;
+                    reportTemp->num = reportTempPrec->num;
+                    reportTempPrec->num = temporaryNum;
                 }
                 reportTemp = reportTemp->next;
-            }
-
-            destinations_pointer destTempPrec = reportTempPrec->destID;
-            destinations_pointer destTemp = reportTempPrec->destID->next;
-            if(destTemp != NULL) {          //If there is more than one destID in the relation, we have to check the order
-                while(destTempPrec != NULL) {
-                    while(destTemp != NULL) {
-                        if(strcmp(destTemp->destName, destTempPrec->destName) < 0) {
-                            destinations_pointer temporary = destTemp->next;
-                            if(destTempPrec == reportTempPrec->destID)
-                                reportTempPrec->destID = destTemp;
-                            destTemp->next = destTempPrec;
-                            destTempPrec->next = temporary;
-                        }
-                        destTemp = destTemp->next;
-                    }
-                    destTempPrec = destTempPrec->next;
-                }
             }
             reportTempPrec = reportTempPrec->next;
         }
@@ -699,7 +715,7 @@ void report(entities_pointer firstEntity) {
                     strcpy(destinations, destID);
                 }
                 else {
-                    destinations = realloc(destinations, strlen(space) + strlen(destID) + 1);
+                    destinations = realloc(destinations, strlen(destinations) + strlen(space) + strlen(destID) + 1);
                     strcat(destinations, space);
                     strcat(destinations, destID);
                 }
@@ -708,7 +724,7 @@ void report(entities_pointer firstEntity) {
                 reportPrint->destID = reportPrint->destID->next;
             }
 
-            char num[1];
+            char num[2];
             sprintf(num, "%d", reportPrint->num);
 
             if(countOutput == 0) {
@@ -720,7 +736,7 @@ void report(entities_pointer firstEntity) {
                 strcat(output, dot);
             }
             else {
-                output = realloc(output, strlen(space) + strlen(relName) + strlen(destinations) + strlen(space) + strlen(num) + strlen(dot) + 1);
+                output = realloc(output, strlen(output) + strlen(space) + strlen(relName) + strlen(destinations) + strlen(space) + strlen(num) + strlen(dot) + 1);
                 strcat(output, space);
                 strcat(output, relName);
                 strcat(output, destinations);
@@ -733,5 +749,6 @@ void report(entities_pointer firstEntity) {
             reportPrint = reportPrint->next;
         }
         printf("%s\n", output);
+        return;
     }
 }
