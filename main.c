@@ -57,18 +57,22 @@ int main() {
     char input[256];                                        //Too much: could it be adjusted to the length read?
 
     do {
-        fgets(input, 256, stdin);                                        //It reads the input line
+        fgets(input, 256, stdin);                                                 //It reads the input line
 
-        if(strstr(input, "addent") == input)                //If the command begins with "addent"
-            entitiesList = addent(input, entitiesList);
-        else if(strstr(input, "delent") == input)           //If the command begins with "delent"
-            entitiesList = delent(input, entitiesList);
-        else if(strstr(input, "addrel") == input)           //If the command begins with "addrel"
-            entitiesList = addrel(input, entitiesList);
-        else if(strstr(input, "delrel") == input)           //If the command begins with "delrel"
-            entitiesList = delrel(input, entitiesList);
-        else if(strstr(input, "report") == input)           //If the command begins with "report"
-            report(entitiesList);
+        if(input[0] == 'a' && input[1] == 'd' && input[2] == 'd') {
+            if(input[3] == 'e' && input[4] == 'n' && input[5] == 't')                       //If the command begins with "addent"
+                entitiesList = addent(input, entitiesList);
+            else if(input[3] == 'r' && input[4] == 'e' && input[5] == 'l')                  //If the command begins with "addrel"
+                entitiesList = addrel(input, entitiesList);
+        }
+        else if(input[0] == 'd' && input[1] == 'e' && input[2] == 'l') {
+            if(input[3] == 'e' && input[4] == 'n' && input[5] == 't')                       //If the command begins with "delent"
+                entitiesList = delent(input, entitiesList);
+            else if(input[3] == 'r' && input[4] == 'e' && input[5] == 'l')                  //If the command begins with "delrel"
+                entitiesList = delrel(input, entitiesList);
+        }
+        else if(input[0] == 'r' && input[1] == 'e' && input[2] == 'p' && input[3] == 'o' && input[4] == 'r' && input[5] == 't')
+            report(entitiesList);                                                           //If the command begins with "report"
 
     } while (input[0] != 'e');                              //Maybe check like the others
 
@@ -85,26 +89,22 @@ int main() {
  * @return firstEntity, modified if necessary
  */
 entities_pointer addent(char const input[], entities_pointer firstEntity) {
-    int i = 7;                          //It's the beginning index of the new entity name received
-    int nameLength = 0;
+    char * newEntity = NULL;     //It will contain the new entity name, plus the '\0'
+    int i = 7;
 
-    while (input[i] != '\n') {          //To get the size of the new entity name
-        nameLength++;
-        i++;
+    for(; input[i] != '\n'; i++) {      //i = 7 is the beginning index of the new entity name received
+        if(i == 7) {
+            newEntity = malloc(sizeof(char) + 1);
+            newEntity[0] = input[i];
+            newEntity[1] = '\0';
+        }
+        else {
+            newEntity = realloc(newEntity, strlen(newEntity) + sizeof(char) + 1);
+            newEntity[i-7] = input[i];
+        }
     }
 
-    char newEntity[nameLength + 1];     //It will contain the new entity name, plus the '\0'
-
-    i = 7;
-    int j = 0;
-
-    while (input[i] != '\n') {          //It initializes newEntity with the name received
-        newEntity[j] = input[i];
-        i++;
-        j++;
-    }
-
-    newEntity[j] = '\0';            //Copies the '\0'
+    newEntity[i-7] = '\0';
 
     //Now newEntity contains the new entity name, like "diego" (with "" and the final '\0').
     //If there aren't nodes yet, it initializes the first entity, and its next attribute points to NULL.
@@ -113,7 +113,7 @@ entities_pointer addent(char const input[], entities_pointer firstEntity) {
 
     if (firstEntity == NULL) {
         firstEntity = (entities_pointer) malloc(sizeof(Entities));
-        firstEntity->name = (char *) malloc((nameLength + 1) * sizeof(char));
+        firstEntity->name = (char *) malloc((i-7 + 1) * sizeof(char));
         strcpy(firstEntity->name, newEntity);
         firstEntity->relations = NULL;
         firstEntity->next = NULL;
@@ -129,7 +129,7 @@ entities_pointer addent(char const input[], entities_pointer firstEntity) {
         if (ptr == NULL) {
             ptr = (entities_pointer) malloc(sizeof(Entities));              //Creates the new node
             prec_ptr->next = ptr;                                           //Links the last existing node to the new one
-            ptr->name = (char *) malloc((nameLength + 1) * sizeof(char));
+            ptr->name = (char *) malloc((i-7 + 1) * sizeof(char));
             strcpy(ptr->name, newEntity);
             ptr->relations = NULL;
             ptr->next = NULL;
@@ -150,26 +150,22 @@ entities_pointer addent(char const input[], entities_pointer firstEntity) {
  * @return firstEntity, modified if necessary
  */
 entities_pointer delent(char const input[], entities_pointer firstEntity) {
-    int i = 7;                          //It's the beginning index of the new entity name received
-    int nameLength = 0;
+    char * newEntity = NULL;     //It will contain the new entity name, plus the '\0'
+    int i = 7;
 
-    while (input[i] != '\n') {          //To get the size of the new entity name
-        nameLength++;
-        i++;
+    for(; input[i] != '\n'; i++) {      //i = 7 is the beginning index of the new entity name received
+        if(i == 7) {
+            newEntity = malloc(sizeof(char) + 1);
+            newEntity[0] = input[i];
+            newEntity[1] = '\0';
+        }
+        else {
+            newEntity = realloc(newEntity, strlen(newEntity) + sizeof(char) + 1);
+            newEntity[i-7] = input[i];
+        }
     }
 
-    char newEntity[nameLength + 1];     //It will contain the new entity name, plus the '\0'
-
-    i = 7;
-    int j = 0;
-
-    while (input[i] != '\n') {          //It initializes newEntity with the name received
-        newEntity[j] = input[i];
-        i++;
-        j++;
-    }
-
-    newEntity[j] = '\0';            //Copies the '\0'
+    newEntity[i-7] = '\0';
 
     //Now newEntity contains the new entity name, like "diego" (with "" and the final '\0').
     //If the name is not present in the list (so ptr points to NULL), it does nothing.
@@ -259,71 +255,56 @@ entities_pointer delent(char const input[], entities_pointer firstEntity) {
  * @return firstEntity, modified if necessary
  */
 entities_pointer addrel(char const input[], entities_pointer firstEntity) {
-    int i = 7;                              //It's the beginning index of the new origin id received
-    int originIDLength = 0;
+    char * originID = NULL;     //It will contain the new originID, plus the '\0'
+    int i = 7;
 
-    while (input[i] != ' ') {               //To get the size of the new origin id
-        originIDLength++;
-        i++;
+    for(; input[i] != ' '; i++) {      //i = 7 is the beginning index of the new originID received
+        if(i == 7) {
+            originID = malloc(sizeof(char) + 1);
+            originID[0] = input[i];
+            originID[1] = '\0';
+        }
+        else {
+            originID = realloc(originID, strlen(originID) + sizeof(char) + 1);
+            originID[i-7] = input[i];
+        }
     }
 
-    char originID[originIDLength + 1];      //It will contain the new origin id, plus the '\0'
+    originID[i-7] = '\0';
 
-    i = 7;
-    int j = 0;
+    int destIDStart = ++i;                                    //Index i now points to the first " of the dest id received in input
+    char * destID = NULL;
 
-    while (input[i] != ' ') {               //It initializes originID with the origin id received
-        originID[j] = input[i];
-        i++;
-        j++;
+    for(; input[i] != ' '; i++) {
+        if(i == destIDStart) {
+            destID = malloc(sizeof(char) + 1);
+            destID[0] = input[i];
+            destID[1] = '\0';
+        }
+        else {
+            destID = realloc(destID, strlen(destID) + sizeof(char) + 1);
+            destID[i-destIDStart] = input[i];
+        }
     }
 
-    originID[j] = '\0';                     //Adds the '\0'
+    destID[i-destIDStart] = '\0';
 
+    int relIDStart = ++i;                                    //Index i now points to the first " of the relID received in input
+    char * relID = NULL;
 
-    i++;                                    //Index i now points to the first " of the dest id received in input
-    int destIDStart = i;
-    int destIDLength = 0;
-    while (input[i] != ' ') {               //To get the size of the new dest id
-        destIDLength++;
-        i++;
+    for(; input[i] != '\n'; i++) {
+        if(i == relIDStart) {
+            relID = malloc(sizeof(char) + 1);
+            relID[0] = input[i];
+            relID[1] = '\0';
+        }
+        else {
+            relID = realloc(relID, strlen(relID) + sizeof(char) + 1);
+            relID[i-relIDStart] = input[i];
+        }
     }
 
-    char destID[destIDLength + 1];          //It will contain the new dest id, plus the '\0'
-
-    i = destIDStart;
-    j = 0;
-
-    while (input[i] != ' ') {               //It initializes destID with the dest id received
-        destID[j] = input[i];
-        i++;
-        j++;
-    }
-
-    destID[j] = '\0';                       //Adds the '\0'
-
-
-    i++;                                    //Index i now points to the first " of the rel id received in input
-    int relIDStart = i;
-    int relIDLength = 0;
-    while (input[i] != '\n') {              //To get the size of the new rel id
-        relIDLength++;
-        i++;
-    }
-
-    char relID[relIDLength + 1];            //It will contain the new rel id, plus the '\0'
-
-    i = relIDStart;
-    j = 0;
-
-    while (input[i] != '\n') {              //It initializes relID with the rel id received
-        relID[j] = input[i];
-        i++;
-        j++;
-    }
-
-    relID[j] = '\0';                        //Adds the '\0'
-
+    relID[i-relIDStart] = '\0';
 
     //It looks for the entity node with the same name as "destID"
 
@@ -348,13 +329,13 @@ entities_pointer addrel(char const input[], entities_pointer firstEntity) {
     if(ptr != NULL && ptrOrigin != NULL) {                                                                  //If the entity is present
         if(ptr->relations == NULL) {                                                                        //If the entity has no relations yet
             ptr->relations = (relations_pointer) malloc(sizeof(Relations));
-            ptr->relations->name = (char *) malloc((relIDLength + 1) * sizeof(char));
+            ptr->relations->name = (char *) malloc((strlen(relID) + 1) * sizeof(char));
             strcpy(ptr->relations->name, relID);
             ptr->relations->next = NULL;
             ptr->relations->origins = NULL;
 
             ptr->relations->origins = (origins_pointer) malloc(sizeof(Origins));
-            ptr->relations->origins->name = (char *) malloc((originIDLength + 1) * sizeof(char));
+            ptr->relations->origins->name = (char *) malloc((strlen(originID) + 1) * sizeof(char));
             strcpy(ptr->relations->origins->name, originID);
             ptr->relations->origins->next = NULL;
         }
@@ -371,10 +352,10 @@ entities_pointer addrel(char const input[], entities_pointer firstEntity) {
                 ptrRelations = (relations_pointer) malloc(sizeof(Relations));
                 ptrRelationsPrec->next = ptrRelations;
                 ptrRelations->next = NULL;
-                ptrRelations->name = (char *) malloc((relIDLength + 1) * sizeof(char));
+                ptrRelations->name = (char *) malloc((strlen(relID) + 1) * sizeof(char));
                 strcpy(ptrRelations->name, relID);
                 ptrRelations->origins = (origins_pointer) malloc(sizeof(Origins));
-                ptrRelations->origins->name = (char *) malloc((originIDLength + 1) * sizeof(char));
+                ptrRelations->origins->name = (char *) malloc((strlen(originID) + 1) * sizeof(char));
                 strcpy(ptrRelations->origins->name, originID);
                 ptrRelations->origins->next = NULL;
             }
@@ -390,7 +371,7 @@ entities_pointer addrel(char const input[], entities_pointer firstEntity) {
                     originToAdd = (origins_pointer) malloc(sizeof(Origins));
                     originPrec->next = originToAdd;
                     originToAdd->next = NULL;
-                    originToAdd->name = (char *) malloc((originIDLength + 1) * sizeof(char));
+                    originToAdd->name = (char *) malloc((strlen(originID) + 1) * sizeof(char));
                     strcpy(originToAdd->name, originID);
                 }
             }
@@ -411,71 +392,56 @@ entities_pointer addrel(char const input[], entities_pointer firstEntity) {
  * @return firstEntity, modified if necessary
  */
 entities_pointer delrel(char const input[], entities_pointer firstEntity) {
-    int i = 7;                              //It's the beginning index of the new origin id received
-    int originIDLength = 0;
+    char * originID = NULL;     //It will contain the new originID, plus the '\0'
+    int i = 7;
 
-    while (input[i] != ' ') {               //To get the size of the new origin id
-        originIDLength++;
-        i++;
+    for(; input[i] != ' '; i++) {      //i = 7 is the beginning index of the new originID received
+        if(i == 7) {
+            originID = malloc(sizeof(char) + 1);
+            originID[0] = input[i];
+            originID[1] = '\0';
+        }
+        else {
+            originID = realloc(originID, strlen(originID) + sizeof(char) + 1);
+            originID[i-7] = input[i];
+        }
     }
 
-    char originID[originIDLength + 1];      //It will contain the new origin id, plus the '\0'
+    originID[i-7] = '\0';
 
-    i = 7;
-    int j = 0;
+    int destIDStart = ++i;                                    //Index i now points to the first " of the dest id received in input
+    char * destID = NULL;
 
-    while (input[i] != ' ') {               //It initializes originID with the origin id received
-        originID[j] = input[i];
-        i++;
-        j++;
+    for(; input[i] != ' '; i++) {
+        if(i == destIDStart) {
+            destID = malloc(sizeof(char) + 1);
+            destID[0] = input[i];
+            destID[1] = '\0';
+        }
+        else {
+            destID = realloc(destID, strlen(destID) + sizeof(char) + 1);
+            destID[i-destIDStart] = input[i];
+        }
     }
 
-    originID[j] = '\0';                     //Adds the '\0'
+    destID[i-destIDStart] = '\0';
 
+    int relIDStart = ++i;                                    //Index i now points to the first " of the relID received in input
+    char * relID = NULL;
 
-    i++;                                    //Index i now points to the first " of the dest id received in input
-    int destIDStart = i;
-    int destIDLength = 0;
-    while (input[i] != ' ') {               //To get the size of the new dest id
-        destIDLength++;
-        i++;
+    for(; input[i] != '\n'; i++) {
+        if(i == relIDStart) {
+            relID = malloc(sizeof(char) + 1);
+            relID[0] = input[i];
+            relID[1] = '\0';
+        }
+        else {
+            relID = realloc(relID, strlen(relID) + sizeof(char) + 1);
+            relID[i-relIDStart] = input[i];
+        }
     }
 
-    char destID[destIDLength + 1];          //It will contain the new dest id, plus the '\0'
-
-    i = destIDStart;
-    j = 0;
-
-    while (input[i] != ' ') {               //It initializes destID with the dest id received
-        destID[j] = input[i];
-        i++;
-        j++;
-    }
-
-    destID[j] = '\0';                       //Adds the '\0'
-
-
-    i++;                                    //Index i now points to the first " of the rel id received in input
-    int relIDStart = i;
-    int relIDLength = 0;
-    while (input[i] != '\n') {              //To get the size of the new rel id
-        relIDLength++;
-        i++;
-    }
-
-    char relID[relIDLength + 1];            //It will contain the new rel id, plus the '\0'
-
-    i = relIDStart;
-    j = 0;
-
-    while (input[i] != '\n') {              //It initializes relID with the rel id received
-        relID[j] = input[i];
-        i++;
-        j++;
-    }
-
-    relID[j] = '\0';                        //Adds the '\0'
-
+    relID[i-relIDStart] = '\0';
 
     //It looks for the entity node with the same name as "destID"
 
@@ -568,7 +534,6 @@ void report(entities_pointer firstEntity) {
                     num++;
                     originsTemp = originsTemp->next;
                 }
-                //reportHead->num = (int) malloc(sizeof(int));
                 reportHead->num = num;
                 reportHead->next = NULL;
             }
@@ -596,7 +561,6 @@ void report(entities_pointer firstEntity) {
                         num++;
                         originsTemp = originsTemp->next;
                     }
-                    //report->num = (int) malloc(sizeof(int));
                     report->num = num;
                     report->next = NULL;
                     reportPrec->next = report;
