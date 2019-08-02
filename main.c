@@ -716,6 +716,7 @@ void report(entities_pointer firstEntity) {
             reportPrint = reportPrint->next;
         }
         printf("%s\n", output);
+        free(reportHead);
         return;
     }
 }
