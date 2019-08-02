@@ -187,48 +187,47 @@ entities_pointer delent(char const input[], entities_pointer firstEntity) {
 
     if(ptr != NULL) {
         entities_pointer ptrRemove = firstEntity;
-        while(ptrRemove != NULL && strcmp(ptrRemove->name, newEntity) != 0) {
-            relations_pointer relationsRemove = ptrRemove->relations;
-            relations_pointer relationsRemovePrec = ptrRemove->relations;
-            int countRelations = 0;
+        while(ptrRemove != NULL) {
+            if(strcmp(ptrRemove->name, newEntity) != 0) {
+                relations_pointer relationsRemove = ptrRemove->relations;
+                relations_pointer relationsRemovePrec = ptrRemove->relations;
+                int countRelations = 0;
 
-            while(relationsRemove != NULL) {
-                origins_pointer originsRemove = relationsRemove->origins;
-                origins_pointer originsRemovePrec = relationsRemove->origins;
-                int countOrigins = 0;
+                while (relationsRemove != NULL) {
+                    origins_pointer originsRemove = relationsRemove->origins;
+                    origins_pointer originsRemovePrec = relationsRemove->origins;
+                    int countOrigins = 0;
 
-                while(originsRemove != NULL && strcmp(originsRemove->name, newEntity) != 0) {
-                    originsRemovePrec = originsRemove;
-                    originsRemove = originsRemove->next;
-                    countOrigins++;
-                }
+                    while (originsRemove != NULL && strcmp(originsRemove->name, newEntity) != 0) {
+                        originsRemovePrec = originsRemove;
+                        originsRemove = originsRemove->next;
+                        countOrigins++;
+                    }
 
-                if(originsRemove != NULL && countOrigins == 0) {
-                    relationsRemove->origins = originsRemove->next;
-                    free(originsRemove);
-                }
-                else if(originsRemove != NULL) {
-                    originsRemovePrec->next = originsRemove->next;
-                    free(originsRemove);
-                }
+                    if (originsRemove != NULL && countOrigins == 0) {
+                        relationsRemove->origins = originsRemove->next;
+                        free(originsRemove);
+                    } else if (originsRemove != NULL) {
+                        originsRemovePrec->next = originsRemove->next;
+                        free(originsRemove);
+                    }
 
 
-                if(relationsRemove->origins == NULL && countRelations == 0) {
-                    ptrRemove->relations = relationsRemove->next;
-                    relations_pointer relationToDel = relationsRemove;
-                    relationsRemove = relationsRemove->next;
-                    free(relationToDel);
-                }
-                else if(relationsRemove->origins == NULL) {
-                    relationsRemovePrec->next = relationsRemove->next;
-                    relations_pointer relationToDel = relationsRemove;
-                    relationsRemove = relationsRemove->next;
-                    free(relationToDel);
-                    countRelations++;
-                }
-                else {
-                    relationsRemovePrec = relationsRemove;
-                    relationsRemove = relationsRemovePrec->next;
+                    if (relationsRemove->origins == NULL && countRelations == 0) {
+                        ptrRemove->relations = relationsRemove->next;
+                        relations_pointer relationToDel = relationsRemove;
+                        relationsRemove = relationsRemove->next;
+                        free(relationToDel);
+                    } else if (relationsRemove->origins == NULL) {
+                        relationsRemovePrec->next = relationsRemove->next;
+                        relations_pointer relationToDel = relationsRemove;
+                        relationsRemove = relationsRemove->next;
+                        free(relationToDel);
+                        countRelations++;
+                    } else {
+                        relationsRemovePrec = relationsRemove;
+                        relationsRemove = relationsRemovePrec->next;
+                    }
                 }
             }
             ptrRemove = ptrRemove->next;
