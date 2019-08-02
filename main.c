@@ -662,58 +662,69 @@ void report(entities_pointer firstEntity) {
 
         reports_pointer reportPrint = reportHead;
         char *output = NULL;
+        int outputLength = 0;
         char *space = " ";
+        int spaceLength = strlen(space);
         char *dot = ";";
+        int dotLength = strlen(dot);
 
         int countOutput = 0;
 
         while (reportPrint != NULL) {
-            char *relName = malloc(strlen(reportPrint->relID) + strlen(space) + 1);
+            int relIDLength = strlen(reportPrint->relID);
+            char *relName = malloc(relIDLength + spaceLength + 1);
             strcpy(relName, reportPrint->relID);
-            strcat(relName, space);
+            strcat(&relName[relIDLength], space);
 
 
             char *destinations = NULL;
+            int destinationsLength = 0;
             int countDest = 0;
             while (reportPrint->destID != NULL) {
-                char *destID = malloc(strlen(reportPrint->destID->destName) + 1);
+                int destIDLength = strlen(reportPrint->destID->destName);
+                char *destID = malloc(destIDLength + 1);
                 strcpy(destID, reportPrint->destID->destName);
                 if (countDest == 0) {
-                    destinations = malloc(strlen(destID) + 1);
+                    destinations = malloc(destIDLength + 1);
                     strcpy(destinations, destID);
+                    destinationsLength = destIDLength;
                 } else {
-                    destinations = realloc(destinations, strlen(destinations) + strlen(space) + strlen(destID) + 1);
-                    strcat(destinations, space);
-                    strcat(destinations, destID);
+                    destinations = realloc(destinations, destinationsLength + spaceLength + destIDLength + 1);
+                    strcat(&destinations[destinationsLength], space);
+                    strcat(&destinations[destinationsLength + spaceLength], destID);
+                    destinationsLength = destinationsLength + spaceLength + destIDLength;
                 }
 
                 countDest++;
                 reportPrint->destID = reportPrint->destID->next;
             }
 
-            char num[2];
+            char num[3];
             sprintf(num, "%d", reportPrint->num);
+            int numLength = strlen(num);
 
             if (countOutput == 0) {
-                output = malloc(strlen(relName) + strlen(destinations) + strlen(space) + strlen(num) + strlen(dot) + 1);
+                output = malloc(relIDLength + spaceLength + destinationsLength + spaceLength + numLength + dotLength + 1);
                 strcpy(output, relName);
-                strcat(output, destinations);
-                strcat(output, space);
-                strcat(output, num);
-                strcat(output, dot);
+                strcat(&output[relIDLength + spaceLength], destinations);
+                strcat(&output[relIDLength + spaceLength + destinationsLength], space);
+                strcat(&output[relIDLength + spaceLength + destinationsLength + spaceLength], num);
+                strcat(&output[relIDLength + spaceLength + destinationsLength + spaceLength + numLength], dot);
+                outputLength = relIDLength + spaceLength + destinationsLength + spaceLength + numLength + dotLength;
             } else {
-                output = realloc(output, strlen(output) + strlen(space) + strlen(relName) + strlen(destinations) +
-                                         strlen(space) + strlen(num) + strlen(dot) + 1);
-                strcat(output, space);
-                strcat(output, relName);
-                strcat(output, destinations);
-                strcat(output, space);
-                strcat(output, num);
-                strcat(output, dot);
+                output = realloc(output, outputLength + spaceLength + relIDLength + spaceLength + destinationsLength + spaceLength + numLength + dotLength + 1);
+                strcat(&output[outputLength], space);
+                strcat(&output[outputLength + spaceLength], relName);
+                strcat(&output[outputLength + spaceLength + relIDLength + spaceLength], destinations);
+                strcat(&output[outputLength + spaceLength + relIDLength + spaceLength + destinationsLength], space);
+                strcat(&output[outputLength + spaceLength + relIDLength + spaceLength + destinationsLength + spaceLength], num);
+                strcat(&output[outputLength + spaceLength + relIDLength + spaceLength + destinationsLength + spaceLength + numLength], dot);
+                outputLength = outputLength + spaceLength + relIDLength + spaceLength + destinationsLength + spaceLength + numLength + dotLength;
             }
 
             countOutput++;
             reportPrint = reportPrint->next;
+            free(relName);
         }
         printf("%s\n", output);
         free(reportHead);
