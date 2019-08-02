@@ -2,34 +2,55 @@
 #include <stdlib.h>
 #include <string.h>
 
+/**
+ * List of origins of a specific relation.
+ * Every node contains the origin name, which is the entity name where the relation comes from.
+ */
 typedef struct origin {
     char * name;
     struct origin * next;
 } Origins;
 
+/**
+ * List of the monitored relations that enter an entity node, added with "addrel" and removed with "delrel".
+ * Every node contains the relation name and a list of origins of that relation.
+ */
 typedef struct relation {
     char * name;
     struct origin * origins;
     struct relation * next;
 } Relations;
 
+/**
+ * List of the monitored entities, added with "addent" and removed with "delent".
+ * Every node contains the entity name and a list of relations that enter the node.
+ */
 typedef struct entity {
     char * name;
     struct relation * relations;
     struct entity * next;
 } Entities;
 
+/**
+ * List of the entity name with the most instances of a relation coming in. Every node contains the entity name.
+ */
 typedef struct destID {
     char * destName;
     struct destID * next;
 } DestIDs;
 
+/**
+ * List used to store every information useful for the method "report".
+ * Every node contains a relation name, a list of the entity names with the most instances of that relation coming in,
+ * and the number of instances of the relation coming in.
+ */
 typedef struct report {
     char * relID;
     struct destID * destID;
     int num;
     struct report * next;
 } Reports;
+
 
 typedef Origins * origins_pointer;
 typedef Relations * relations_pointer;
@@ -52,27 +73,27 @@ void report(entities_pointer firstEntity);
  * @return 0 when the process ends
  */
 int main() {
-    entities_pointer entitiesList = NULL;                   //Pointer to the beginning of the list of entities
+    entities_pointer entitiesList = NULL;                                       //Pointer to the beginning of the list of entities
 
-    char input[256];                                        //Too much: could it be adjusted to the length read?
+    char input[256];                                                            //Too much: could it be adjusted to the length read?
 
     do {
-        fgets(input, 256, stdin);                                                 //It reads the input line
+        fgets(input, 256, stdin);                                     //It reads the input line
 
         if(input[0] == 'a' && input[1] == 'd' && input[2] == 'd') {
-            if(input[3] == 'e' && input[4] == 'n' && input[5] == 't')                       //If the command begins with "addent"
+            if(input[3] == 'e' && input[4] == 'n' && input[5] == 't')           //If the command begins with "addent"
                 entitiesList = addent(input, entitiesList);
-            else if(input[3] == 'r' && input[4] == 'e' && input[5] == 'l')                  //If the command begins with "addrel"
+            else if(input[3] == 'r' && input[4] == 'e' && input[5] == 'l')      //If the command begins with "addrel"
                 entitiesList = addrel(input, entitiesList);
         }
         else if(input[0] == 'd' && input[1] == 'e' && input[2] == 'l') {
-            if(input[3] == 'e' && input[4] == 'n' && input[5] == 't')                       //If the command begins with "delent"
+            if(input[3] == 'e' && input[4] == 'n' && input[5] == 't')           //If the command begins with "delent"
                 entitiesList = delent(input, entitiesList);
-            else if(input[3] == 'r' && input[4] == 'e' && input[5] == 'l')                  //If the command begins with "delrel"
+            else if(input[3] == 'r' && input[4] == 'e' && input[5] == 'l')      //If the command begins with "delrel"
                 entitiesList = delrel(input, entitiesList);
         }
         else if(input[0] == 'r' && input[1] == 'e' && input[2] == 'p' && input[3] == 'o' && input[4] == 'r' && input[5] == 't')
-            report(entitiesList);                                                           //If the command begins with "report"
+            report(entitiesList);                                               //If the command begins with "report"
 
     } while (input[0] != 'e');
 
@@ -89,10 +110,10 @@ int main() {
  * @return firstEntity, modified if necessary
  */
 entities_pointer addent(char const input[], entities_pointer firstEntity) {
-    char * newEntity = NULL;     //It will contain the new entity name, plus the '\0'
+    char * newEntity = NULL;                                        //It will contain the new entity name, plus the '\0'
     int i = 7;
 
-    for(; input[i] != '\n'; i++) {      //i = 7 is the beginning index of the new entity name received
+    for(; input[i] != '\n'; i++) {                                  //i = 7 is the beginning index of the new entity name received
         if(i == 7) {
             newEntity = malloc(sizeof(char) + 1);
             newEntity[0] = input[i];
@@ -638,6 +659,7 @@ void report(entities_pointer firstEntity) {
         reports_pointer reportTemp = reportHead->next;
 
         while (reportTemp != NULL) {
+
             if (strcmp(reportTemp->relID, reportTempPrec->relID) < 0) {
                 char *temporary = malloc(strlen(reportTemp->relID));
                 strcpy(temporary, reportTemp->relID);
