@@ -215,20 +215,21 @@ entities_pointer delent(char const input[], entities_pointer firstEntity) {
 
                 if(relationsRemove->origins == NULL && countRelations == 0) {
                     ptrRemove->relations = relationsRemove->next;
-                    /*relations_pointer relationToDel = relationsRemove;
+                    relations_pointer relationToDel = relationsRemove;
                     relationsRemove = relationsRemove->next;
-                    free(relationToDel);*/
+                    free(relationToDel);
                 }
                 else if(relationsRemove->origins == NULL) {
                     relationsRemovePrec->next = relationsRemove->next;
-                    /*relations_pointer relationToDel = relationsRemove;
+                    relations_pointer relationToDel = relationsRemove;
                     relationsRemove = relationsRemove->next;
-                    free(relationToDel);*/
+                    free(relationToDel);
                     countRelations++;
                 }
-
-                relationsRemovePrec = relationsRemove;
-                relationsRemove = relationsRemovePrec->next;
+                else {
+                    relationsRemovePrec = relationsRemove;
+                    relationsRemove = relationsRemovePrec->next;
+                }
             }
             ptrRemove = ptrRemove->next;
         }
@@ -479,7 +480,7 @@ entities_pointer delrel(char const input[], entities_pointer firstEntity) {
             origins_pointer originPointerPrec = relPointer->origins;
             int countOrigins = 0;
             while(originPointer != NULL && strcmp(originPointer->name, originID) != 0) {
-                originPointerPrec->next = originPointer;
+                originPointerPrec = originPointer;
                 originPointer = originPointer->next;
                 countOrigins++;
             }
