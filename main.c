@@ -87,18 +87,18 @@ int main() {
         fgets(input, 256, stdin);                                     //It reads the input line
 
         if(input[0] == 'a' && input[1] == 'd' && input[2] == 'd') {
-            if(input[3] == 'e' && input[4] == 'n' && input[5] == 't')           //If the command begins with "addent"
+            if(input[3] == 'e'/* && input[4] == 'n' && input[5] == 't'*/)           //If the command begins with "addent"
                 entitiesList = addent(input, entitiesList);
-            else if(input[3] == 'r' && input[4] == 'e' && input[5] == 'l')      //If the command begins with "addrel"
+            else if(input[3] == 'r'/* && input[4] == 'e' && input[5] == 'l'*/)      //If the command begins with "addrel"
                 entitiesList = addrel(input, entitiesList);
         }
         else if(input[0] == 'd' && input[1] == 'e' && input[2] == 'l') {
-            if(input[3] == 'e' && input[4] == 'n' && input[5] == 't')           //If the command begins with "delent"
+            if(input[3] == 'e'/* && input[4] == 'n' && input[5] == 't'*/)           //If the command begins with "delent"
                 entitiesList = delent(input, entitiesList);
-            else if(input[3] == 'r' && input[4] == 'e' && input[5] == 'l')      //If the command begins with "delrel"
+            else if(input[3] == 'r'/* && input[4] == 'e' && input[5] == 'l'*/)      //If the command begins with "delrel"
                 entitiesList = delrel(input, entitiesList);
         }
-        else if(input[0] == 'r' && input[1] == 'e' && input[2] == 'p' && input[3] == 'o' && input[4] == 'r' && input[5] == 't')
+        else if(input[0] == 'r'/* && input[1] == 'e' && input[2] == 'p' && input[3] == 'o' && input[4] == 'r' && input[5] == 't'*/)
             report(entitiesList);                                               //If the command begins with "report"
 
     } while (input[0] != 'e');
@@ -200,64 +200,65 @@ entities_pointer delent(char const input[], entities_pointer firstEntity) {
     //in the entities list, and deletes it in the origins list inside the relations list, if present.
     //Eventually, it links the precedent node to the next node and it deletes the node with the searched name.
 
-    entities_pointer ptr = firstEntity;
-    entities_pointer prec_ptr = firstEntity;
-    int countNodes = 0;
-    while (ptr != NULL && strcmp(ptr->name, newEntity) != 0) {
-        prec_ptr = ptr;
-        ptr = ptr->next;
-        countNodes++;
-    }
-
     //If ptr is not NULL, it search in the entities list for every node that is not "newEntity". In that node, it search
     //in its relations list for an origin name that has the same name as "newEntity". At that point, it removes that origin node.
 
-    if(ptr != NULL) {
-        entities_pointer ptrRemove = firstEntity;
-        while(ptrRemove != NULL) {
-            if(strcmp(ptrRemove->name, newEntity) != 0) {
-                relations_pointer relationsRemove = ptrRemove->relations;
-                relations_pointer relationsRemovePrec = ptrRemove->relations;
-                int countRelations = 0;
+    entities_pointer ptr = NULL;
+    entities_pointer ptrRemove;
+    entities_pointer prec_ptr = firstEntity;
+    int countNodes = 0;
+    int nodeToDelete = 0;
 
-                while (relationsRemove != NULL) {
-                    origins_pointer originsRemove = relationsRemove->origins;
-                    origins_pointer originsRemovePrec = relationsRemove->origins;
-                    int countOrigins = 0;
+    for(ptrRemove = firstEntity; ptrRemove != NULL; ptrRemove = ptrRemove->next) {
+        if(strcmp(ptrRemove->name, newEntity) != 0) {
+            relations_pointer relationsRemove = ptrRemove->relations;
+            relations_pointer relationsRemovePrec = ptrRemove->relations;
+            int countRelations = 0;
 
-                    while (originsRemove != NULL && strcmp(originsRemove->name, newEntity) != 0) {
-                        originsRemovePrec = originsRemove;
-                        originsRemove = originsRemove->next;
-                        countOrigins++;
-                    }
+            while (relationsRemove != NULL) {
+                origins_pointer originsRemove = relationsRemove->origins;
+                origins_pointer originsRemovePrec = relationsRemove->origins;
+                int countOrigins = 0;
 
-                    if (originsRemove != NULL && countOrigins == 0) {
-                        relationsRemove->origins = originsRemove->next;
-                        free(originsRemove);
-                    } else if (originsRemove != NULL) {
-                        originsRemovePrec->next = originsRemove->next;
-                        free(originsRemove);
-                    }
+                while (originsRemove != NULL && strcmp(originsRemove->name, newEntity) != 0) {
+                    originsRemovePrec = originsRemove;
+                    originsRemove = originsRemove->next;
+                    countOrigins++;
+                }
+
+                if (originsRemove != NULL && countOrigins == 0) {
+                    relationsRemove->origins = originsRemove->next;
+                    free(originsRemove);
+                } else if (originsRemove != NULL) {
+                    originsRemovePrec->next = originsRemove->next;
+                    free(originsRemove);
+                }
 
 
-                    if (relationsRemove->origins == NULL && countRelations == 0) {
-                        ptrRemove->relations = relationsRemove->next;
-                        relations_pointer relationToDel = relationsRemove;
-                        relationsRemove = relationsRemove->next;
-                        free(relationToDel);
-                    } else if (relationsRemove->origins == NULL) {
-                        relationsRemovePrec->next = relationsRemove->next;
-                        relations_pointer relationToDel = relationsRemove;
-                        relationsRemove = relationsRemove->next;
-                        free(relationToDel);
-                        countRelations++;
-                    } else {
-                        relationsRemovePrec = relationsRemove;
-                        relationsRemove = relationsRemovePrec->next;
-                    }
+                if (relationsRemove->origins == NULL && countRelations == 0) {
+                    ptrRemove->relations = relationsRemove->next;
+                    relations_pointer relationToDel = relationsRemove;
+                    relationsRemove = relationsRemove->next;
+                    free(relationToDel);
+                } else if (relationsRemove->origins == NULL) {
+                    relationsRemovePrec->next = relationsRemove->next;
+                    relations_pointer relationToDel = relationsRemove;
+                    relationsRemove = relationsRemove->next;
+                    free(relationToDel);
+                    countRelations++;
+                } else {
+                    relationsRemovePrec = relationsRemove;
+                    relationsRemove = relationsRemovePrec->next;
                 }
             }
-            ptrRemove = ptrRemove->next;
+            if(nodeToDelete == 0) {
+                prec_ptr = ptrRemove;
+                countNodes++;
+            }
+        }
+        else if(strcmp(ptrRemove->name, newEntity) == 0) {
+            ptr = ptrRemove;
+            nodeToDelete = 1;
         }
     }
 
@@ -338,18 +339,23 @@ entities_pointer addrel(char const input[], entities_pointer firstEntity) {
     relID[i-relIDStart] = '\0';
     int relIDLength = i - relIDStart;
 
-    //It looks for the entity node with the same name as "destID"
+    //It looks for the entities nodes with the same name as "destID" and "originID"
 
     entities_pointer ptr = firstEntity;
-    while (ptr != NULL && strcmp(ptr->name, destID) != 0) {
-        ptr = ptr->next;
-    }
-
-    //It also checks if "originID" is present in the monitored entities
-
-    entities_pointer ptrOrigin = firstEntity;
-    while(ptrOrigin != NULL && strcmp(ptrOrigin->name, originID) != 0) {
-        ptrOrigin = ptrOrigin->next;
+    entities_pointer destPtr = NULL;
+    int originIDFound = 0;
+    int destIDFound = 0;
+    while (ptr != NULL) {
+        if(strcmp(ptr->name, destID) == 0) {
+            destIDFound = 1;
+            destPtr = ptr;
+        }
+        if(strcmp(ptr->name, originID) == 0)
+            originIDFound = 1;
+        if(destIDFound == 1 && originIDFound == 1)
+            break;
+        else
+            ptr = ptr->next;
     }
 
     //If at least one of the two entities is not present, it exits.
@@ -358,21 +364,21 @@ entities_pointer addrel(char const input[], entities_pointer firstEntity) {
     //If relID is not present, it adds it with originID inside.
     //If relID is already present, it simply adds the new originID to that relation, if not already present.
 
-    if(ptr != NULL && ptrOrigin != NULL) {                                                                  //If the entity is present
-        if(ptr->relations == NULL) {                                                                        //If the entity has no relations yet
-            ptr->relations = malloc(relationsSize);
-            ptr->relations->next = NULL;
-            ptr->relations->name = malloc((relIDLength + 1) * sizeof(char));
-            strcpy(ptr->relations->name, relID);
-            ptr->relations->origins = NULL;
-            ptr->relations->origins = malloc(originsSize);
-            ptr->relations->origins->name = malloc((originIDLength + 1) * sizeof(char));
-            strcpy(ptr->relations->origins->name, originID);
-            ptr->relations->origins->next = NULL;
+    if(ptr != NULL) {                                          //If the entities are present
+        if(destPtr->relations == NULL) {                                                                        //If the entity has no relations yet
+            destPtr->relations = malloc(relationsSize);
+            destPtr->relations->next = NULL;
+            destPtr->relations->name = malloc((relIDLength + 1) * sizeof(char));
+            strcpy(destPtr->relations->name, relID);
+            destPtr->relations->origins = NULL;
+            destPtr->relations->origins = malloc(originsSize);
+            destPtr->relations->origins->name = malloc((originIDLength + 1) * sizeof(char));
+            strcpy(destPtr->relations->origins->name, originID);
+            destPtr->relations->origins->next = NULL;
         }
         else {                                                                                              //Else if the entity already has any relation
-            relations_pointer ptrRelations = ptr->relations;
-            relations_pointer ptrRelationsPrec = ptr->relations;
+            relations_pointer ptrRelations = destPtr->relations;
+            relations_pointer ptrRelationsPrec = destPtr->relations;
 
             while(ptrRelations != NULL && strcmp(ptrRelations->name, relID) != 0) {
                 ptrRelationsPrec = ptrRelations;
@@ -474,18 +480,20 @@ entities_pointer delrel(char const input[], entities_pointer firstEntity) {
 
     relID[i-relIDStart] = '\0';
 
-    //It looks for the entity node with the same name as "destID"
+    //It looks for the entities nodes with the same name as "destID" and "originID"
 
     entities_pointer ptr = firstEntity;
+    int originIDFound = 0;
+    int destIDFound = 0;
     while (ptr != NULL && strcmp(ptr->name, destID) != 0) {
-        ptr = ptr->next;
-    }
-
-    //It also checks if "originID" is present in the monitored entities
-
-    entities_pointer ptrOrigin = firstEntity;
-    while(ptrOrigin != NULL && strcmp(ptrOrigin->name, originID) != 0) {
-        ptrOrigin = ptrOrigin->next;
+        if(strcmp(ptr->name, destID) == 0)
+            destIDFound = 1;
+        else if(strcmp(ptr->name, originID) == 0)
+            originIDFound = 1;
+        if(destIDFound == 1 && originIDFound == 1)
+            break;
+        else
+            ptr = ptr->next;
     }
 
     //If at least one of the two entities is not present, it exits.
@@ -493,7 +501,7 @@ entities_pointer delrel(char const input[], entities_pointer firstEntity) {
     //If relID is present, it checks if the originID of that relation is the same as the originID in input. If not, it exits.
     //If it is the same, it remove that origin in that relation.
 
-    if(ptr != NULL && ptrOrigin != NULL) {
+    if(ptr != NULL) {
         relations_pointer relPointer = ptr->relations;
         relations_pointer relPointerPrec = ptr->relations;
         int counterRel = 0;
