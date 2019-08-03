@@ -630,32 +630,9 @@ void report(entities_pointer firstEntity) {
         return;
     }
     else {
-        reports_pointer reportTempD;
-
-        for (reportTempD = reportHead; reportTempD != NULL; reportTempD = reportTempD->next) {
-
-            destinations_pointer destTempPrec, destTemp;
-
-            //If there is more than one destID in the relation, we have to check the order
-            for (destTempPrec = reportTempD->destID; destTempPrec->next != NULL; destTempPrec = destTempPrec->next) {
-                for (destTemp = destTempPrec->next; destTemp != NULL; destTemp = destTemp->next) {
-                    if (strcmp(destTemp->destName, destTempPrec->destName) < 0) {
-                        char *temporary = malloc(strlen(destTemp->destName) + 1);
-                        strcpy(temporary, destTemp->destName);
-                        //free(destTemp->destName);
-                        destTemp->destName = malloc(strlen(destTempPrec->destName) + 1);
-                        strcpy(destTemp->destName, destTempPrec->destName);
-                        //free(destTempPrec->destName);
-                        destTempPrec->destName = malloc(strlen(temporary) + 1);
-                        strcpy(destTempPrec->destName, temporary);
-                    }
-                }
-            }
-        }
-
         reports_pointer reportTempPrec, reportTemp;
 
-        for(reportTempPrec = reportHead; reportTempPrec->next != NULL; reportTempPrec = reportTempPrec->next) {
+        for(reportTempPrec = reportHead; reportTempPrec != NULL; reportTempPrec = reportTempPrec->next) {
             for(reportTemp = reportTempPrec->next; reportTemp != NULL; reportTemp = reportTemp->next) {
                 if (strcmp(reportTemp->relID, reportTempPrec->relID) < 0) {
                     char *temporary = malloc(strlen(reportTemp->relID));
@@ -674,6 +651,25 @@ void report(entities_pointer firstEntity) {
                     reportTempPrec->num = temporaryNum;
                 }
             }
+
+            destinations_pointer destTempPrec, destTemp;
+
+            //If there is more than one destID in the relation, we have to check the order
+            for (destTempPrec = reportTempPrec->destID; destTempPrec->next != NULL; destTempPrec = destTempPrec->next) {
+                for (destTemp = destTempPrec->next; destTemp != NULL; destTemp = destTemp->next) {
+                    if (strcmp(destTemp->destName, destTempPrec->destName) < 0) {
+                        char *temporary = malloc(strlen(destTemp->destName) + 1);
+                        strcpy(temporary, destTemp->destName);
+                        //free(destTemp->destName);
+                        destTemp->destName = malloc(strlen(destTempPrec->destName) + 1);
+                        strcpy(destTemp->destName, destTempPrec->destName);
+                        //free(destTempPrec->destName);
+                        destTempPrec->destName = malloc(strlen(temporary) + 1);
+                        strcpy(destTempPrec->destName, temporary);
+                    }
+                }
+            }
+
         }
 
         //Now that the report list is ordered, we have to print it.
