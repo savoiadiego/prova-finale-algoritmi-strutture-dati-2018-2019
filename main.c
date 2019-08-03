@@ -58,6 +58,12 @@ typedef Entities * entities_pointer;
 typedef DestIDs * destinations_pointer;
 typedef Reports * reports_pointer;
 
+int originsSize = sizeof(Origins);
+int relationsSize = sizeof(Relations);
+int entitiesSize = sizeof(Entities);
+int destSize = sizeof(DestIDs);
+int reportsSize = sizeof(Reports);
+
 
 entities_pointer addent(char const input[], entities_pointer firstEntity);
 entities_pointer delent(char const input[], entities_pointer firstEntity);
@@ -133,7 +139,7 @@ entities_pointer addent(char const input[], entities_pointer firstEntity) {
     //If the name is already there, ptr does not point to NULL (the name is present) so we do nothing.
 
     if (firstEntity == NULL) {
-        firstEntity = malloc(sizeof(Entities));
+        firstEntity = malloc(entitiesSize);
         firstEntity->name = malloc((i-7 + 1) * sizeof(char));
         strcpy(firstEntity->name, newEntity);
         firstEntity->relations = NULL;
@@ -148,7 +154,7 @@ entities_pointer addent(char const input[], entities_pointer firstEntity) {
         }
 
         if (ptr == NULL) {
-            ptr = malloc(sizeof(Entities));              //Creates the new node
+            ptr = malloc(entitiesSize);              //Creates the new node
             prec_ptr->next = ptr;                                           //Links the last existing node to the new one
             ptr->name = malloc((i-7 + 1) * sizeof(char));
             strcpy(ptr->name, newEntity);
@@ -354,12 +360,12 @@ entities_pointer addrel(char const input[], entities_pointer firstEntity) {
 
     if(ptr != NULL && ptrOrigin != NULL) {                                                                  //If the entity is present
         if(ptr->relations == NULL) {                                                                        //If the entity has no relations yet
-            ptr->relations = malloc(sizeof(Relations));
+            ptr->relations = malloc(relationsSize);
             ptr->relations->next = NULL;
             ptr->relations->name = malloc((relIDLength + 1) * sizeof(char));
             strcpy(ptr->relations->name, relID);
             ptr->relations->origins = NULL;
-            ptr->relations->origins = malloc(sizeof(Origins));
+            ptr->relations->origins = malloc(originsSize);
             ptr->relations->origins->name = malloc((originIDLength + 1) * sizeof(char));
             strcpy(ptr->relations->origins->name, originID);
             ptr->relations->origins->next = NULL;
@@ -374,11 +380,11 @@ entities_pointer addrel(char const input[], entities_pointer firstEntity) {
             }
 
             if(ptrRelations == NULL) {                                                                      //If the requested relation is not present in that entity
-                ptrRelations = malloc(sizeof(Relations));
+                ptrRelations = malloc(relationsSize);
                 ptrRelations->next = NULL;
                 ptrRelations->name = malloc((relIDLength + 1) * sizeof(char));
                 strcpy(ptrRelations->name, relID);
-                ptrRelations->origins = malloc(sizeof(Origins));
+                ptrRelations->origins = malloc(originsSize);
                 ptrRelations->origins->name = malloc((originIDLength + 1) * sizeof(char));
                 strcpy(ptrRelations->origins->name, originID);
                 ptrRelations->origins->next = NULL;
@@ -393,7 +399,7 @@ entities_pointer addrel(char const input[], entities_pointer firstEntity) {
                 }
 
                 if(originToAdd == NULL) {                                                                   //If the origin is not present, it is added
-                    originToAdd = malloc(sizeof(Origins));
+                    originToAdd = malloc(originsSize);
                     originToAdd->next = NULL;
                     originToAdd->name = malloc((originIDLength + 1) * sizeof(char));
                     strcpy(originToAdd->name, originID);
@@ -546,9 +552,9 @@ void report(entities_pointer firstEntity) {
         relations_pointer rel = ptr->relations;
         while(rel != NULL) {
             if(reportHead == NULL) {
-                reportHead = malloc(sizeof(Reports));
+                reportHead = malloc(reportsSize);
                 reportHead->next = NULL;
-                reportHead->destID = malloc(sizeof(DestIDs));
+                reportHead->destID = malloc(destSize);
                 reportHead->destID->destName = malloc((strlen(ptr->name) + 1) * sizeof(char));
                 strcpy(reportHead->destID->destName, ptr->name);
                 reportHead->destID->next = NULL;
@@ -572,9 +578,9 @@ void report(entities_pointer firstEntity) {
                 //if we have to add destID (numOld = num), substitute destID (numOld < num) or do nothing (numOld > num).
 
                 if(report == NULL) {            //relID is not present, so we add a new node
-                    report = malloc(sizeof(Reports));
+                    report = malloc(reportsSize);
                     report->next = NULL;
-                    report->destID = malloc(sizeof(DestIDs));
+                    report->destID = malloc(destSize);
                     report->destID->destName = malloc((strlen(ptr->name) + 1) * sizeof(char));
                     strcpy(report->destID->destName, ptr->name);
                     report->destID->next = NULL;
@@ -602,7 +608,7 @@ void report(entities_pointer firstEntity) {
                             destTempPrec = destTemp;
                             destTemp = destTemp->next;
                         }
-                        destTemp = malloc(sizeof(DestIDs));
+                        destTemp = malloc(destSize);
                         destTemp->next = NULL;
                         destTemp->destName = malloc((strlen(ptr->name) + 1) * sizeof(char));
                         strcpy(destTemp->destName, ptr->name);
