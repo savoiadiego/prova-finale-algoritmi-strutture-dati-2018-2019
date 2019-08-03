@@ -120,7 +120,7 @@ entities_pointer addent(char const input[], entities_pointer firstEntity) {
             newEntity[1] = '\0';
         }
         else {
-            newEntity = realloc(newEntity, strlen(newEntity) + sizeof(char) + 1);
+            newEntity = realloc(newEntity, i-7 + sizeof(char) + 1);
             newEntity[i-7] = input[i];
         }
     }
@@ -181,7 +181,7 @@ entities_pointer delent(char const input[], entities_pointer firstEntity) {
             newEntity[1] = '\0';
         }
         else {
-            newEntity = realloc(newEntity, strlen(newEntity) + sizeof(char) + 1);
+            newEntity = realloc(newEntity, i-7 + sizeof(char) + 1);
             newEntity[i-7] = input[i];
         }
     }
@@ -289,12 +289,13 @@ entities_pointer addrel(char const input[], entities_pointer firstEntity) {
             originID[1] = '\0';
         }
         else {
-            originID = realloc(originID, strlen(originID) + sizeof(char) + 1);
+            originID = realloc(originID, i-7 + sizeof(char) + 1);
             originID[i-7] = input[i];
         }
     }
 
     originID[i-7] = '\0';
+    int originIDLength = i - 7;
 
     int destIDStart = ++i;                                    //Index i now points to the first " of the dest id received in input
     char * destID = NULL;
@@ -306,7 +307,7 @@ entities_pointer addrel(char const input[], entities_pointer firstEntity) {
             destID[1] = '\0';
         }
         else {
-            destID = realloc(destID, strlen(destID) + sizeof(char) + 1);
+            destID = realloc(destID, i-destIDStart + sizeof(char) + 1);
             destID[i-destIDStart] = input[i];
         }
     }
@@ -323,12 +324,13 @@ entities_pointer addrel(char const input[], entities_pointer firstEntity) {
             relID[1] = '\0';
         }
         else {
-            relID = realloc(relID, strlen(relID) + sizeof(char) + 1);
+            relID = realloc(relID, i-relIDStart + sizeof(char) + 1);
             relID[i-relIDStart] = input[i];
         }
     }
 
     relID[i-relIDStart] = '\0';
+    int relIDLength = i - relIDStart;
 
     //It looks for the entity node with the same name as "destID"
 
@@ -354,11 +356,11 @@ entities_pointer addrel(char const input[], entities_pointer firstEntity) {
         if(ptr->relations == NULL) {                                                                        //If the entity has no relations yet
             ptr->relations = malloc(sizeof(Relations));
             ptr->relations->next = NULL;
-            ptr->relations->name = malloc((strlen(relID) + 1) * sizeof(char));
+            ptr->relations->name = malloc((relIDLength + 1) * sizeof(char));
             strcpy(ptr->relations->name, relID);
             ptr->relations->origins = NULL;
             ptr->relations->origins = malloc(sizeof(Origins));
-            ptr->relations->origins->name = malloc((strlen(originID) + 1) * sizeof(char));
+            ptr->relations->origins->name = malloc((originIDLength + 1) * sizeof(char));
             strcpy(ptr->relations->origins->name, originID);
             ptr->relations->origins->next = NULL;
         }
@@ -374,10 +376,10 @@ entities_pointer addrel(char const input[], entities_pointer firstEntity) {
             if(ptrRelations == NULL) {                                                                      //If the requested relation is not present in that entity
                 ptrRelations = malloc(sizeof(Relations));
                 ptrRelations->next = NULL;
-                ptrRelations->name = malloc((strlen(relID) + 1) * sizeof(char));
+                ptrRelations->name = malloc((relIDLength + 1) * sizeof(char));
                 strcpy(ptrRelations->name, relID);
                 ptrRelations->origins = malloc(sizeof(Origins));
-                ptrRelations->origins->name = malloc((strlen(originID) + 1) * sizeof(char));
+                ptrRelations->origins->name = malloc((originIDLength + 1) * sizeof(char));
                 strcpy(ptrRelations->origins->name, originID);
                 ptrRelations->origins->next = NULL;
                 ptrRelationsPrec->next = ptrRelations;
@@ -393,7 +395,7 @@ entities_pointer addrel(char const input[], entities_pointer firstEntity) {
                 if(originToAdd == NULL) {                                                                   //If the origin is not present, it is added
                     originToAdd = malloc(sizeof(Origins));
                     originToAdd->next = NULL;
-                    originToAdd->name = malloc((strlen(originID) + 1) * sizeof(char));
+                    originToAdd->name = malloc((originIDLength + 1) * sizeof(char));
                     strcpy(originToAdd->name, originID);
                     originPrec->next = originToAdd;
                 }
@@ -425,7 +427,7 @@ entities_pointer delrel(char const input[], entities_pointer firstEntity) {
             originID[1] = '\0';
         }
         else {
-            originID = realloc(originID, strlen(originID) + sizeof(char) + 1);
+            originID = realloc(originID, i-7 + sizeof(char) + 1);
             originID[i-7] = input[i];
         }
     }
@@ -442,7 +444,7 @@ entities_pointer delrel(char const input[], entities_pointer firstEntity) {
             destID[1] = '\0';
         }
         else {
-            destID = realloc(destID, strlen(destID) + sizeof(char) + 1);
+            destID = realloc(destID, i-destIDStart + sizeof(char) + 1);
             destID[i-destIDStart] = input[i];
         }
     }
@@ -459,7 +461,7 @@ entities_pointer delrel(char const input[], entities_pointer firstEntity) {
             relID[1] = '\0';
         }
         else {
-            relID = realloc(relID, strlen(relID) + sizeof(char) + 1);
+            relID = realloc(relID, i-relIDStart + sizeof(char) + 1);
             relID[i-relIDStart] = input[i];
         }
     }
@@ -628,16 +630,15 @@ void report(entities_pointer firstEntity) {
         return;
     }
     else {
-        reports_pointer reportTempD = reportHead;
-        while (reportTempD != NULL) {
+        reports_pointer reportTempD;
 
-            destinations_pointer destTempPrec = reportTempD->destID;
-            destinations_pointer destTemp = NULL;
+        for (reportTempD = reportHead; reportTempD != NULL; reportTempD = reportTempD->next) {
+
+            destinations_pointer destTempPrec, destTemp;
 
             //If there is more than one destID in the relation, we have to check the order
-            while (destTempPrec != NULL) {
-                destTemp = destTempPrec->next;
-                while (destTemp != NULL) {
+            for (destTempPrec = reportTempD->destID; destTempPrec->next != NULL; destTempPrec = destTempPrec->next) {
+                for (destTemp = destTempPrec->next; destTemp != NULL; destTemp = destTemp->next) {
                     if (strcmp(destTemp->destName, destTempPrec->destName) < 0) {
                         char *temporary = malloc(strlen(destTemp->destName) + 1);
                         strcpy(temporary, destTemp->destName);
@@ -648,36 +649,31 @@ void report(entities_pointer firstEntity) {
                         destTempPrec->destName = malloc(strlen(temporary) + 1);
                         strcpy(destTempPrec->destName, temporary);
                     }
-                    destTemp = destTemp->next;
                 }
-                destTempPrec = destTempPrec->next;
             }
-            reportTempD = reportTempD->next;
         }
 
-        reports_pointer reportTempPrec = reportHead;
-        reports_pointer reportTemp = reportHead->next;
+        reports_pointer reportTempPrec, reportTemp;
 
-        while (reportTemp != NULL) {
-
-            if (strcmp(reportTemp->relID, reportTempPrec->relID) < 0) {
-                char *temporary = malloc(strlen(reportTemp->relID));
-                strcpy(temporary, reportTemp->relID);
-                //free(reportTemp->relID);
-                reportTemp->relID = malloc(strlen(reportTempPrec->relID));
-                strcpy(reportTemp->relID, reportTempPrec->relID);
-                //free(reportTempPrec->relID);
-                reportTempPrec->relID = malloc(strlen(temporary));
-                strcpy(reportTempPrec->relID, temporary);
-                destinations_pointer temporaryDestPointer = reportTemp->destID;
-                reportTemp->destID = reportTempPrec->destID;
-                reportTempPrec->destID = temporaryDestPointer;
-                int temporaryNum = reportTemp->num;
-                reportTemp->num = reportTempPrec->num;
-                reportTempPrec->num = temporaryNum;
+        for(reportTempPrec = reportHead; reportTempPrec->next != NULL; reportTempPrec = reportTempPrec->next) {
+            for(reportTemp = reportTempPrec->next; reportTemp != NULL; reportTemp = reportTemp->next) {
+                if (strcmp(reportTemp->relID, reportTempPrec->relID) < 0) {
+                    char *temporary = malloc(strlen(reportTemp->relID));
+                    strcpy(temporary, reportTemp->relID);
+                    //free(reportTemp->relID);
+                    reportTemp->relID = malloc(strlen(reportTempPrec->relID));
+                    strcpy(reportTemp->relID, reportTempPrec->relID);
+                    //free(reportTempPrec->relID);
+                    reportTempPrec->relID = malloc(strlen(temporary));
+                    strcpy(reportTempPrec->relID, temporary);
+                    destinations_pointer temporaryDestPointer = reportTemp->destID;
+                    reportTemp->destID = reportTempPrec->destID;
+                    reportTempPrec->destID = temporaryDestPointer;
+                    int temporaryNum = reportTemp->num;
+                    reportTemp->num = reportTempPrec->num;
+                    reportTempPrec->num = temporaryNum;
+                }
             }
-            reportTemp = reportTemp->next;
-            reportTempPrec = reportTempPrec->next;
         }
 
         //Now that the report list is ordered, we have to print it.
