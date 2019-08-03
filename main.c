@@ -546,11 +546,11 @@ entities_pointer delrel(char const input[], entities_pointer firstEntity) {
 
 void report(entities_pointer firstEntity) {
     reports_pointer reportHead = NULL;
+    entities_pointer ptr;
+    relations_pointer rel;
 
-    entities_pointer ptr = firstEntity;
-    while(ptr != NULL) {
-        relations_pointer rel = ptr->relations;
-        while(rel != NULL) {
+    for(ptr = firstEntity; ptr != NULL; ptr = ptr->next) {
+        for(rel = ptr->relations; rel != NULL; rel = rel->next) {
             if(reportHead == NULL) {
                 reportHead = malloc(reportsSize);
                 reportHead->next = NULL;
@@ -570,14 +570,18 @@ void report(entities_pointer firstEntity) {
             else {
                 reports_pointer report = reportHead;
                 reports_pointer reportPrec = reportHead;
-                while(report != NULL && strcmp(rel->name, report->relID) != 0) {
+                int strcmpResult = 0;
+                while(report != NULL && ((strcmpResult = strcmp(rel->name, report->relID)) > 0)) {
                     reportPrec = report;
                     report = report->next;
                 }
-                //Same as above but report is not empty, so if rel is already present, we have to check num to decide
-                //if we have to add destID (numOld = num), substitute destID (numOld < num) or do nothing (numOld > num).
 
-                if(report == NULL) {            //relID is not present, so we add a new node
+                //Same as above but report is not empty, so if rel is not present, report == NULL and we add it at the end of the list.
+                //If rel is already present, report != NULL and there are two cases:
+                //If strcmp gave 0, report points at a node with the same relID, so we check num and we do accordingly.
+                //If strcmp gave <0, the new relID must be inserted between reportPrec and report.
+
+                if(report == NULL) {            //relID is not present, so we add a new node at the end of the list
                     report = malloc(reportsSize);
                     report->next = NULL;
                     report->destID = malloc(destSize);
@@ -594,92 +598,87 @@ void report(entities_pointer firstEntity) {
                     }
                     reportPrec->next = report;
                 }
-                else {                          //relID is already present, so we check num
-                    int num = 0;
-                    origins_pointer originsTemp = rel->origins;
-                    while(originsTemp != NULL) {
-                        num++;
-                        originsTemp = originsTemp->next;
-                    }
-                    if(num == report->num) {    //if num is the same, we add the new destID
-                        destinations_pointer destTemp = report->destID;
-                        destinations_pointer destTempPrec = report->destID;
-                        while(destTemp != NULL) {
-                            destTempPrec = destTemp;
-                            destTemp = destTemp->next;
+                else {
+                    if(strcmpResult < 0) {          //The new relID must be inserted between reportPrec and report
+                        reports_pointer newReport = malloc(reportsSize);
+                        if(report == reportHead) {
+                            newReport->next = reportHead;
+                            reportHead = newReport;
                         }
-                        destTemp = malloc(destSize);
-                        destTemp->next = NULL;
-                        destTemp->destName = malloc((strlen(ptr->name) + 1) * sizeof(char));
-                        strcpy(destTemp->destName, ptr->name);
-                        destTempPrec->next = destTemp;
+                        else {
+                            reportPrec->next = newReport;
+                            newReport->next = report;
+                        }
+                        newReport->destID = malloc(destSize);
+                        newReport->destID->destName = malloc((strlen(ptr->name) + 1) * sizeof(char));
+                        strcpy(newReport->destID->destName, ptr->name);
+                        newReport->destID->next = NULL;
+                        newReport->relID = malloc((strlen(rel->name) + 1) * sizeof(char));
+                        strcpy(newReport->relID, rel->name);
+                        newReport->num = 0;
+                        origins_pointer originsTemp = rel->origins;
+                        while(originsTemp != NULL) {
+                            newReport->num++;
+                            originsTemp = originsTemp->next;
+                        }
                     }
-                    else if(num > report->num) {    //if num is higher than the previous, we substitute the destID
-                        report->destID->destName = NULL;
-                        free(report->destID->next);
-                        report->destID->next = NULL;
-                        report->destID->destName = malloc((strlen(ptr->name) + 1) * sizeof(char));
-                        strcpy(report->destID->destName, ptr->name);
-                        report->num = num;
+                    else {          //The new relID is the same as the one in report node, so we check num and modify accordingly
+                        int num = 0;
+                        origins_pointer originsTemp = rel->origins;
+                        while(originsTemp != NULL) {
+                            num++;
+                            originsTemp = originsTemp->next;
+                        }
+                        if(num == report->num) {            //if num is the same, we add the new destID, sorting them
+                            destinations_pointer destTemp = report->destID;
+                            destinations_pointer destTempPrec = report->destID;
+                            strcmpResult = 0;
+                            while(destTemp != NULL && ((strcmpResult = strcmp(ptr->name, destTemp->destName)) > 0)) {
+                                destTempPrec = destTemp;
+                                destTemp = destTemp->next;
+                            }
+                            if(destTemp == NULL) {              //If the new destID must be inserted at the end of the list
+                                destTemp = malloc(destSize);
+                                destTemp->next = NULL;
+                                destTemp->destName = malloc((strlen(ptr->name) + 1) * sizeof(char));
+                                strcpy(destTemp->destName, ptr->name);
+                                destTempPrec->next = destTemp;
+                            }
+                            else if(strcmpResult < 0) {         //If the new destID must be inserted between destTempPrec and destTemp
+                                destinations_pointer newDest = malloc(destSize);
+                                if(destTemp == report->destID) {
+                                    newDest->next = report->destID;
+                                    report->destID = newDest;
+                                }
+                                else {
+                                    destTempPrec->next = newDest;
+                                    newDest->next = destTemp;
+                                }
+                                newDest->destName = malloc((strlen(ptr->name) + 1) * sizeof(char));
+                                strcpy(newDest->destName, ptr->name);
+                            }
+                        }
+                        else if(num > report->num) {    //if num is higher than the previous, we substitute the destID
+                            report->destID->destName = NULL;
+                            free(report->destID->next);
+                            report->destID->next = NULL;
+                            report->destID->destName = malloc((strlen(ptr->name) + 1) * sizeof(char));
+                            strcpy(report->destID->destName, ptr->name);
+                            report->num = num;
+                        }
                     }
                 }
             }
-            rel = rel->next;
         }
-        ptr = ptr->next;
     }
 
-    //After the report list is created, we have to order it (relations and destIDs inside).
+    //After the report list is created, we have to print it.
 
     if(reportHead == NULL) {
         printf("none\n");
         return;
     }
     else {
-        reports_pointer reportTempPrec, reportTemp;
-
-        for(reportTempPrec = reportHead; reportTempPrec != NULL; reportTempPrec = reportTempPrec->next) {
-            for(reportTemp = reportTempPrec->next; reportTemp != NULL; reportTemp = reportTemp->next) {
-                if (strcmp(reportTemp->relID, reportTempPrec->relID) < 0) {
-                    char *temporary = malloc(strlen(reportTemp->relID));
-                    strcpy(temporary, reportTemp->relID);
-                    //free(reportTemp->relID);
-                    reportTemp->relID = malloc(strlen(reportTempPrec->relID));
-                    strcpy(reportTemp->relID, reportTempPrec->relID);
-                    //free(reportTempPrec->relID);
-                    reportTempPrec->relID = malloc(strlen(temporary));
-                    strcpy(reportTempPrec->relID, temporary);
-                    destinations_pointer temporaryDestPointer = reportTemp->destID;
-                    reportTemp->destID = reportTempPrec->destID;
-                    reportTempPrec->destID = temporaryDestPointer;
-                    int temporaryNum = reportTemp->num;
-                    reportTemp->num = reportTempPrec->num;
-                    reportTempPrec->num = temporaryNum;
-                }
-            }
-
-            destinations_pointer destTempPrec, destTemp;
-
-            //If there is more than one destID in the relation, we have to check the order
-            for (destTempPrec = reportTempPrec->destID; destTempPrec->next != NULL; destTempPrec = destTempPrec->next) {
-                for (destTemp = destTempPrec->next; destTemp != NULL; destTemp = destTemp->next) {
-                    if (strcmp(destTemp->destName, destTempPrec->destName) < 0) {
-                        char *temporary = malloc(strlen(destTemp->destName) + 1);
-                        strcpy(temporary, destTemp->destName);
-                        //free(destTemp->destName);
-                        destTemp->destName = malloc(strlen(destTempPrec->destName) + 1);
-                        strcpy(destTemp->destName, destTempPrec->destName);
-                        //free(destTempPrec->destName);
-                        destTempPrec->destName = malloc(strlen(temporary) + 1);
-                        strcpy(destTempPrec->destName, temporary);
-                    }
-                }
-            }
-
-        }
-
-        //Now that the report list is ordered, we have to print it.
-
         reports_pointer reportPrint = reportHead;
         char *output = NULL;
         int outputLength = 0;
