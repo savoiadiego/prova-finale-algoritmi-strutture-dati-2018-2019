@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 /**
  * List of origins of a specific relation.
@@ -274,6 +275,7 @@ entities_pointer delent(char const input[], entities_pointer firstEntity) {
                 } else {
                     relationsRemovePrec = relationsRemove;
                     relationsRemove = relationsRemovePrec->next;
+                    countRelations++;
                 }
             }
         }
@@ -572,7 +574,7 @@ entities_pointer delrel(char const input[], entities_pointer firstEntity) {
         int counterRel = 0;
         int strcmpResult = 0;
         while(relPointer != NULL && (strcmpResult = strcmp(relID, relPointer->name)) > 0) {
-            relPointerPrec->next = relPointer;
+            relPointerPrec = relPointer;
             relPointer = relPointer->next;
             counterRel++;
         }
