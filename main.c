@@ -216,25 +216,24 @@ entities_pointer delent(char const input[], entities_pointer firstEntity) {
     //in the entities list, and deletes it in the origins list inside the relations list, if present.
     //Eventually, it links the precedent node to the next node and it deletes the node with the searched name.
 
+    entities_pointer ptr = firstEntity;
+    entities_pointer prec_ptr = firstEntity;
+    int countNodes = 0;
+    int strcmpResult = 0;
+    while(ptr != NULL && ((strcmpResult = strcmp(ptr->name, newEntity)) < 0)) {
+        prec_ptr = ptr;
+        ptr = ptr->next;
+        countNodes++;
+    }
+
     //If ptr is not NULL, it search in the entities list for every node that is not "newEntity". In that node, it search
     //in its relations list for an origin name that has the same name as "newEntity". At that point, it removes that origin node.
 
-    entities_pointer ptr = NULL;
-    entities_pointer ptrRemove;
-    entities_pointer prec_ptr = firstEntity;
-    int countNodes = 0;
+    entities_pointer ptrRemove = NULL;
     int nodeToDelete = 0;
 
-    for(ptrRemove = firstEntity; ptrRemove != NULL; ptrRemove = ptrRemove->next) {
-        int strcmpNE = strcmp(newEntity, ptrRemove->name);
-        if(strcmpNE == 0) {
-            ptr = ptrRemove;
-            nodeToDelete = 1;
-        }
-        else if(nodeToDelete == 0 && strcmpNE > 0) {       //If newEntity is not a monitored entity
-            return firstEntity;
-        }
-        else {
+    if(ptr != NULL && strcmpResult == 0) {
+        for (ptrRemove = firstEntity; ptrRemove != NULL; ptrRemove = ptrRemove->next) {
             relations_pointer relationsRemove = ptrRemove->relations;
             relations_pointer relationsRemovePrec = ptrRemove->relations;
             int countRelations = 0;
@@ -277,22 +276,17 @@ entities_pointer delent(char const input[], entities_pointer firstEntity) {
                     relationsRemove = relationsRemovePrec->next;
                 }
             }
-            if(nodeToDelete == 0) {
-                prec_ptr = ptrRemove;
-                countNodes++;
-            }
         }
-
     }
 
     //Now that every origin node with the same name as "newEntity" is deleted in every other entity node, it deletes the entity "newEntity".
 
-    if(ptr != NULL && countNodes != 0) {                //If ptr is not NULL and the node to remove is not the first
-        prec_ptr->next = ptr->next;
+    if(ptr != NULL && strcmpResult == 0 && countNodes == 0) {                //If ptr is not NULL and the node to remove is not the first
+        firstEntity = ptr->next;                        //The head is now changed: if it was the only node, now it is NULL (empty)
         free(ptr);
     }
-    else if(ptr != NULL) {                              //If ptr is not NULL and the node to remove is the first
-        firstEntity = ptr->next;                        //The head is now changed: if it was the only node, now it is NULL (empty)
+    else if(ptr != NULL && strcmpResult == 0) {                              //If ptr is not NULL and the node to remove is the first
+        prec_ptr->next = ptr->next;
         free(ptr);
     }
 
@@ -370,15 +364,17 @@ entities_pointer addrel(char const input[], entities_pointer firstEntity) {
     int destIDFound = 0;
     int strcmpDest = 0;
     int strcmpOr = 0;
-    while (ptr != NULL && (((strcmpDest = strcmp(ptr->name, destID)) <= 0) || ((strcmpOr = strcmp(ptr->name, originID)) <= 0))) {
-        if(strcmpDest == 0) {
+    while (ptr != NULL) {
+        if(strcmp(ptr->name, destID) == 0) {
             destIDFound = 1;
             destPtr = ptr;
         }
-        if(strcmpOr == 0)
+        if(strcmp(ptr->name, originID) == 0)
             originIDFound = 1;
         if(destIDFound == 1 && originIDFound == 1)
             break;
+        else if((originIDFound == 0 && strcmpOr > 0) || (destIDFound == 0 && strcmpDest > 0))
+            return firstEntity;
         else
             ptr = ptr->next;
     }
@@ -550,15 +546,17 @@ entities_pointer delrel(char const input[], entities_pointer firstEntity) {
     int destIDFound = 0;
     int strcmpDest = 0;
     int strcmpOr = 0;
-    while (ptr != NULL && (((strcmpDest = strcmp(ptr->name, destID)) <= 0) || ((strcmpOr = strcmp(ptr->name, originID)) <= 0))) {
-        if(strcmpDest == 0) {
+    while (ptr != NULL) {
+        if(strcmp(ptr->name, destID) == 0) {
             destIDFound = 1;
             destPtr = ptr;
         }
-        if(strcmpOr == 0)
+        if(strcmp(ptr->name, originID) == 0)
             originIDFound = 1;
         if(destIDFound == 1 && originIDFound == 1)
             break;
+        else if((originIDFound == 0 && strcmpOr > 0) || (destIDFound == 0 && strcmpDest > 0))
+            return firstEntity;
         else
             ptr = ptr->next;
     }
@@ -579,7 +577,7 @@ entities_pointer delrel(char const input[], entities_pointer firstEntity) {
             counterRel++;
         }
 
-        if(strcmpResult == 0) {
+        if(relPointer != NULL && strcmpResult == 0) {
             origins_pointer originPointer = relPointer->origins;
             origins_pointer originPointerPrec = relPointer->origins;
             int countOrigins = 0;
