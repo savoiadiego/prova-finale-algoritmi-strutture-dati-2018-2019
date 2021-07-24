@@ -614,15 +614,17 @@ entities_pointer delrel(char const input[], entities_pointer firstEntity) {
     return firstEntity;
 }
 
-
-//Scorri la lista delle entities: per ogni entity scorri le relazioni in ingresso. Per ogni relazione salvi nome e numero di origins.
-//In una nuova lista "report", se la relazione non è già presente, allora la aggiungi con destinatario e numero di origins.
-//Se invece è già presente, confronti il numero di origins e se è maggiore di quello già presente, allora sostituisci numero ed eventualmente destinatario, se diverso.
-//Se il numero è identico, allora si aggiunge il nuovo destinatario (che quindi è una lista dentro la lista).
-//Una volta completato lo scorrimento di tutta la lista, bisogna ordinarla in base al nome della relazione.
-//Bisogna inoltre ordinare anche i destinatari di ogni relazione, se più di uno.
-//Infine, si stampa la lista in ordine.
-
+/**
+ * Method called when the command "report" is received.
+ * This method scans the entities list: for every entity, it scans the inbound relations and for every relations, it stores the name and the number of origins.
+ * It adds the relation to a "report" list if that relation is not already present, inserting also the destination and the number of origins.
+ * Instead, if the relation is already present in the "report" list, then it compares the numbers of origins: if it is greater than the one already present,
+ * then it overwrites the old one, changing also the destination if different.
+ * If the numbers are the same, it simply adds the new destination (so it will be a list of lists).
+ * After competing the scan of the whole list, it sorts it according to the relation names. Destinations are sorted too, if more than one.
+ * Finally, it prints the list.
+ * @param firstEntity (pointer to the beginning of the entities list)
+ */
 void report(entities_pointer firstEntity) {
     reports_pointer reportHead = NULL;
     entities_pointer ptr;
