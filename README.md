@@ -28,6 +28,6 @@ The methods that can be handle by the mechanism are the following:
 * report - It prints the list of all the monitored relationships. For each one of them, it prints also the entities with the largest number of inbound relationships, and the number itself. In case of ties, it prints all the involved entities in increasing order of identifier. If no relationship of that type is present, it outputs "none". 
 * end - It stops the commands sequence.
 
-### Implementation
+## Implementation
 The mechanism is implemented using the standard C language, relying only on the _libc_ library.\
 It reads in standard input a sequence of commands and, when requested, it prints in standard output the result (as explained above).
